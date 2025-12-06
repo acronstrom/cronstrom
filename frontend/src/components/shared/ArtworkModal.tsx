@@ -105,25 +105,14 @@ export function ArtworkModal({
                  <p className="text-neutral-600 leading-relaxed">{artwork.description}</p>
                </div>
              )}
-             <div>
-               <h3 className="text-xs uppercase tracking-wider text-neutral-400 mb-1">Status</h3>
-               <div className="flex items-center gap-2">
-                 <span className={`w-2 h-2 rounded-full ${artwork.status === 'available' ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                 <p className="capitalize text-neutral-800">
-                   {artwork.status === 'available' ? 'Tillgänglig' : artwork.status === 'reserved' ? 'Reserverad' : 'Såld'}
-                 </p>
-               </div>
-             </div>
           </div>
           
-          {artwork.status === 'available' && (
-            <a 
-              href={`mailto:hello@cronstrom.net?subject=Förfrågan: ${artwork.title}`}
-              className="block w-full py-4 bg-black text-white text-center uppercase tracking-widest text-sm hover:bg-neutral-800 transition-colors"
-            >
-              Skicka förfrågan
-            </a>
-          )}
+          <a 
+            href={`mailto:hello@cronstrom.net?subject=Förfrågan: ${artwork.title}`}
+            className="block w-full py-4 bg-black text-white text-center uppercase tracking-widest text-sm hover:bg-neutral-800 transition-colors"
+          >
+            Skicka förfrågan
+          </a>
 
           {/* Navigation hint */}
           {(hasPrevious || hasNext) && (
