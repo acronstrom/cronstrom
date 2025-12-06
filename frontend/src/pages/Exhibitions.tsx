@@ -74,6 +74,26 @@ function ExhibitionSection({
 }
 
 export function Exhibitions() {
+  const currentYear = new Date().getFullYear();
+  
+  // Filter for current/ongoing exhibitions
+  const currentExhibitions = exhibitions.filter(ex => {
+    if (ex.category === 'kommande') {
+      const year = parseInt(ex.date || ex.year || '0');
+      return year === currentYear;
+    }
+    return false;
+  });
+
+  // Filter for upcoming exhibitions (future)
+  const upcomingExhibitions = exhibitions.filter(ex => {
+    if (ex.category === 'kommande') {
+      const year = parseInt(ex.date || ex.year || '0');
+      return year > currentYear;
+    }
+    return false;
+  });
+
   const kommande = exhibitions.filter(e => e.category === 'kommande');
   const separat = exhibitions.filter(e => e.category === 'separat');
   const samling = exhibitions.filter(e => e.category === 'samling');
@@ -96,6 +116,71 @@ export function Exhibitions() {
             En resa genom tre decennier av konstnärligt skapande — 
             från intima gallerier i Skåne till Kungliga Vetenskapsakademien i Stockholm.
           </p>
+        </motion.div>
+
+        {/* Current & Upcoming Exhibitions */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="mb-16 grid md:grid-cols-2 gap-8"
+        >
+          {/* Pågående utställningar */}
+          <div className="bg-white p-8 border-l-4 border-amber-500">
+            <h2 className="text-sm font-medium tracking-wide uppercase text-neutral-500 mb-4">
+              Pågående utställningar
+            </h2>
+            {currentExhibitions.length > 0 ? (
+              <div className="space-y-4">
+                {currentExhibitions.map((ex, i) => (
+                  <div key={ex.id || i}>
+                    <h3 className="text-xl font-serif text-neutral-900 mb-1">
+                      {ex.title}
+                    </h3>
+                    <p className="text-neutral-600">
+                      {ex.venue || ex.location}
+                      {(ex.date || ex.year) && (
+                        <span className="text-neutral-500"> · {ex.date || ex.year}</span>
+                      )}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-neutral-500 italic">
+                För tillfället visas inga utställningar – håll utkik efter kommande
+              </p>
+            )}
+          </div>
+
+          {/* Kommande utställningar */}
+          <div className="bg-white p-8 border-l-4 border-neutral-300">
+            <h2 className="text-sm font-medium tracking-wide uppercase text-neutral-500 mb-4">
+              Kommande utställningar
+            </h2>
+            {upcomingExhibitions.length > 0 ? (
+              <div className="space-y-4">
+                {upcomingExhibitions.map((ex, i) => (
+                  <div key={ex.id || i}>
+                    <h3 className="text-xl font-serif text-neutral-900 mb-1">
+                      {ex.title}
+                    </h3>
+                    <p className="text-neutral-600">
+                      {ex.venue || ex.location}
+                      {(ex.date || ex.year) && (
+                        <span className="text-neutral-500"> · {ex.date || ex.year}</span>
+                      )}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-neutral-500 italic">
+                Inga kommande utställningar för tillfället
+              </p>
+            )}
+          </div>
         </motion.div>
 
         {/* Featured: Uppdrag */}
@@ -168,4 +253,3 @@ export function Exhibitions() {
     </section>
   );
 }
-
