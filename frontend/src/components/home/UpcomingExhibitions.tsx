@@ -1,94 +1,55 @@
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
-import { Calendar, MapPin, ArrowRight } from 'lucide-react';
 import { exhibitions } from '../../lib/data';
 
 export function UpcomingExhibitions() {
-  // Filter for upcoming/current exhibitions (kommande category or future dates)
+  // Filter for upcoming/current exhibitions
   const currentYear = new Date().getFullYear();
   
   const upcomingExhibitions = exhibitions.filter(ex => {
-    // Check if it's marked as 'kommande' or has a current/future year
     if (ex.category === 'kommande') return true;
     const year = parseInt(ex.date || ex.year || '0');
     return year >= currentYear;
-  }).slice(0, 3); // Show max 3
+  }).slice(0, 2); // Show max 2 for discretion
 
-  // If no upcoming exhibitions, don't render the section
   if (upcomingExhibitions.length === 0) {
     return null;
   }
 
   return (
-    <section className="py-24 bg-neutral-900 text-white">
-      <div className="container mx-auto px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl md:text-5xl font-serif mb-4">Aktuellt</h2>
-          <p className="text-neutral-400 max-w-xl mx-auto">
-            Kommande och pågående utställningar
-          </p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {upcomingExhibitions.map((exhibition, index) => (
-            <motion.div
-              key={exhibition.id || index}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="bg-white/5 backdrop-blur-sm border border-white/10 p-8 hover:bg-white/10 transition-colors group"
-            >
-              <div className="flex items-center gap-2 text-amber-400 mb-4">
-                <Calendar size={18} />
-                <span className="text-sm uppercase tracking-wider">
-                  {exhibition.date || exhibition.year || 'Kommande'}
-                </span>
-              </div>
-              
-              <h3 className="text-2xl font-serif mb-3 group-hover:text-amber-200 transition-colors">
-                {exhibition.title}
-              </h3>
-              
-              <div className="flex items-start gap-2 text-neutral-400 mb-4">
-                <MapPin size={16} className="mt-1 flex-shrink-0" />
-                <span className="text-sm">
-                  {exhibition.venue || exhibition.location}
-                </span>
-              </div>
-              
-              {exhibition.description && (
-                <p className="text-neutral-500 text-sm leading-relaxed">
-                  {exhibition.description}
-                </p>
-              )}
-            </motion.div>
-          ))}
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="text-center mt-12"
-        >
-          <Link 
-            to="/utstallningar" 
-            className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors group"
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 1, delay: 1.5 }}
+      className="absolute bottom-8 right-8 z-20 hidden md:block"
+    >
+      <div className="text-right">
+        <p className="text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3">
+          Aktuellt
+        </p>
+        {upcomingExhibitions.map((exhibition, index) => (
+          <motion.div
+            key={exhibition.id || index}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 1.8 + index * 0.2 }}
+            className="mb-2 last:mb-0"
           >
-            <span className="uppercase tracking-wider text-sm">Se alla utställningar</span>
-            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-          </Link>
-        </motion.div>
+            <p className="text-white/70 text-sm font-light">
+              {exhibition.title}
+            </p>
+            <p className="text-white/40 text-xs">
+              {exhibition.venue || exhibition.location}
+            </p>
+          </motion.div>
+        ))}
+        <Link 
+          to="/utstallningar"
+          className="inline-block mt-4 text-[10px] uppercase tracking-[0.2em] text-white/30 hover:text-white/60 transition-colors border-b border-white/20 hover:border-white/40 pb-0.5"
+        >
+          Alla utställningar
+        </Link>
       </div>
-    </section>
+    </motion.div>
   );
 }
-

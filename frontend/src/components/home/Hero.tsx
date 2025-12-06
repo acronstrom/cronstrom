@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { artistBio } from '../../lib/data';
+import { UpcomingExhibitions } from './UpcomingExhibitions';
 
 export function Hero() {
   const navigate = useNavigate();
@@ -55,7 +56,9 @@ export function Hero() {
           </div>
         </motion.div>
       </div>
+
+      {/* Upcoming Exhibitions - Discrete overlay in bottom right */}
+      <UpcomingExhibitions />
     </section>
   );
 }
-
