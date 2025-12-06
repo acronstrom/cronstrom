@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { artworks as initialArtworks } from '../lib/data';
 import { SectionHeader, ArtworkGrid } from '../components/shared/SharedComponents';
 import { ArtworkModal } from '../components/shared/ArtworkModal';
@@ -21,7 +21,7 @@ function loadArtworks(): Artwork[] {
 
 export function Gallery() {
   const [artworks, setArtworks] = useState<Artwork[]>([]);
-  const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   useEffect(() => {
     setArtworks(loadArtworks());
@@ -35,18 +35,47 @@ export function Gallery() {
     a.category === 'Mixed Media'
   );
 
+  const handleOpenArtwork = (artwork: Artwork) => {
+    const index = galleryItems.findIndex(a => a.id === artwork.id);
+    setSelectedIndex(index);
+  };
+
+  const handleClose = () => {
+    setSelectedIndex(null);
+  };
+
+  const handlePrevious = useCallback(() => {
+    if (selectedIndex !== null && selectedIndex > 0) {
+      setSelectedIndex(selectedIndex - 1);
+    }
+  }, [selectedIndex]);
+
+  const handleNext = useCallback(() => {
+    if (selectedIndex !== null && selectedIndex < galleryItems.length - 1) {
+      setSelectedIndex(selectedIndex + 1);
+    }
+  }, [selectedIndex, galleryItems.length]);
+
+  const selectedArtwork = selectedIndex !== null ? galleryItems[selectedIndex] : null;
+  const hasPrevious = selectedIndex !== null && selectedIndex > 0;
+  const hasNext = selectedIndex !== null && selectedIndex < galleryItems.length - 1;
+
   return (
     <>
       <section className="py-24 bg-white min-h-screen pt-32">
         <div className="container mx-auto px-6">
           <SectionHeader title="Galleri" subtitle="Ett urval av målningar och verk." />
-          <ArtworkGrid items={galleryItems} onOpen={setSelectedArtwork} />
+          <ArtworkGrid items={galleryItems} onOpen={handleOpenArtwork} />
         </div>
       </section>
       {selectedArtwork && (
         <ArtworkModal 
           artwork={selectedArtwork} 
-          onClose={() => setSelectedArtwork(null)} 
+          onClose={handleClose}
+          onPrevious={handlePrevious}
+          onNext={handleNext}
+          hasPrevious={hasPrevious}
+          hasNext={hasNext}
         />
       )}
     </>
