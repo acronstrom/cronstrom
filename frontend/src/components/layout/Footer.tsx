@@ -25,7 +25,7 @@ export function Footer() {
             <Link to="/kontakt" className="text-left hover:text-neutral-500 transition-colors">Kontakt</Link>
           </div>
 
-          {/* Contact */}
+          {/* Contact 
           <div className="space-y-4">
              <h4 className="font-medium mb-2 uppercase tracking-wider text-xs text-neutral-400">Följ</h4>
              <div className="flex space-x-4">
@@ -34,14 +34,11 @@ export function Footer() {
                </a>
                <a href="#" className="p-2 bg-white rounded-full hover:bg-neutral-100 border border-neutral-100 transition-colors">
                  <Facebook size={18} />
-               </a>
-               <a href="mailto:hello@cronstrom.net" className="p-2 bg-white rounded-full hover:bg-neutral-100 border border-neutral-100 transition-colors">
-                 <Mail size={18} />
-               </a>
+               </a>             
              </div>
              <p className="text-sm text-neutral-500">hello@cronstrom.net</p>
           </div>
-        </div>
+        </div>*/}
 
         <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-neutral-200 text-xs text-neutral-400">
           <p>&copy; {new Date().getFullYear()} {artistBio.name}. Alla rättigheter förbehållna.</p>
