@@ -34,7 +34,7 @@ export function Contact() {
     try {
       // Send via Formspree (free service)
       // Replace 'xpwzgkqr' with your own Formspree form ID from https://formspree.io
-      const response = await fetch('https://formspree.io/f/xpwzgkqr', {
+      const response = await fetch('https://formspree.io/f/mnnezkkz', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
