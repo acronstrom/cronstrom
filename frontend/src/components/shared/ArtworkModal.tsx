@@ -99,12 +99,6 @@ export function ArtworkModal({
                <h3 className="text-xs uppercase tracking-wider text-neutral-400 mb-1">Mått</h3>
                <p className="text-neutral-800">{artwork.dimensions}</p>
              </div>
-             {artwork.description && (
-               <div>
-                 <h3 className="text-xs uppercase tracking-wider text-neutral-400 mb-1">Om verket</h3>
-                 <p className="text-neutral-600 leading-relaxed">{artwork.description}</p>
-               </div>
-             )}
           </div>
           
           <a 
