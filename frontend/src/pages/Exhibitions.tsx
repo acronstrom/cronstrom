@@ -1,0 +1,171 @@
+import { motion } from 'motion/react';
+import { exhibitions } from '../lib/data';
+import type { Exhibition } from '../lib/types';
+
+function ExhibitionItem({ exhibition }: { exhibition: Exhibition }) {
+  const displayTitle = exhibition.title
+    .replace(/^Separatutställning$/, '')
+    .replace(/^Samlingsutställning$/, '')
+    .trim();
+  
+  const venue = exhibition.venue || exhibition.location || '';
+  const year = exhibition.date || exhibition.year || '';
+  
+  return (
+    <div className="py-3 border-b border-neutral-100 last:border-0">
+      <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-6">
+        <span className="text-neutral-500 text-sm min-w-[90px] tabular-nums">
+          {year}
+        </span>
+        <div className="flex-1">
+          {displayTitle ? (
+            <>
+              <span className="text-neutral-900 font-medium">{displayTitle}</span>
+              {venue && <span className="text-neutral-400">, </span>}
+            </>
+          ) : null}
+          <span className="text-neutral-600">{venue}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ExhibitionSection({ 
+  title, 
+  count,
+  items,
+  accentColor = 'bg-neutral-900'
+}: { 
+  title: string, 
+  count: number,
+  items: Exhibition[],
+  accentColor?: string
+}) {
+  if (items.length === 0) return null;
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5 }}
+      className="mb-16"
+    >
+      {/* Section Header */}
+      <div className="flex items-center gap-4 mb-8 pb-4 border-b-2 border-neutral-900">
+        <div className={`w-3 h-3 ${accentColor}`} />
+        <h3 className="text-lg font-medium tracking-wide uppercase">
+          {title}
+        </h3>
+        <span className="text-neutral-400 text-sm ml-auto">
+          {count} utställningar
+        </span>
+      </div>
+      
+      {/* Exhibition List */}
+      <div className="pl-7">
+        {items.map((ex, i) => (
+          <ExhibitionItem key={ex.id || i} exhibition={ex} />
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
+export function Exhibitions() {
+  const kommande = exhibitions.filter(e => e.category === 'kommande');
+  const separat = exhibitions.filter(e => e.category === 'separat');
+  const samling = exhibitions.filter(e => e.category === 'samling');
+  const jury = exhibitions.filter(e => e.category === 'jury');
+
+  return (
+    <section className="min-h-screen bg-neutral-50 pt-32 pb-24">
+      <div className="container mx-auto px-6">
+        {/* Header */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="max-w-3xl mb-16"
+        >
+          <h1 className="text-5xl md:text-6xl font-serif mb-6">
+            Utställningar
+          </h1>
+          <p className="text-lg text-neutral-600 leading-relaxed">
+            En resa genom tre decennier av konstnärligt skapande — 
+            från intima gallerier i Skåne till Kungliga Vetenskapsakademien i Stockholm.
+          </p>
+        </motion.div>
+
+        {/* Featured: Uppdrag */}
+        {kommande.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="mb-16 bg-white p-8 md:p-12 border-l-4 border-neutral-900"
+          >
+            <h2 className="text-sm font-medium tracking-wide uppercase text-neutral-500 mb-6">
+              Uppdrag & Representerad
+            </h2>
+            <div className="space-y-6">
+              {kommande.map((ex, i) => (
+                <div key={ex.id || i}>
+                  <h3 className="text-2xl font-serif text-neutral-900 mb-1">
+                    {ex.title}
+                  </h3>
+                  <p className="text-neutral-600">
+                    {ex.venue || ex.location}
+                    {(ex.date || ex.year) && (
+                      <span className="text-neutral-500"> · {ex.date || ex.year}</span>
+                    )}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Main Exhibition Sections */}
+        <div className="max-w-4xl">
+          <ExhibitionSection 
+            title="Separatutställningar" 
+            count={separat.length}
+            items={separat}
+            accentColor="bg-neutral-900"
+          />
+          
+          <ExhibitionSection 
+            title="Jurybedömda utställningar" 
+            count={jury.length}
+            items={jury}
+            accentColor="bg-neutral-700"
+          />
+          
+          <ExhibitionSection 
+            title="Samlingsutställningar" 
+            count={samling.length}
+            items={samling}
+            accentColor="bg-neutral-500"
+          />
+        </div>
+
+        {/* Footer quote */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="mt-20 pt-12 border-t border-neutral-200 text-center max-w-2xl mx-auto"
+        >
+          <p className="text-neutral-500 italic font-serif text-lg">
+            "Varje utställning är ett samtal mellan konstnär och betraktare"
+          </p>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
