@@ -1,41 +1,14 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const { sql } = require('@vercel/postgres');
 
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
-
-// MongoDB Connection (only connect once)
-let isConnected = false;
-
-async function connectDB() {
-  if (isConnected) return;
-  
-  try {
-    if (process.env.MONGODB_URI) {
-      await mongoose.connect(process.env.MONGODB_URI);
-      isConnected = true;
-      console.log('MongoDB Connected');
-    }
-  } catch (err) {
-    console.error('MongoDB connection error:', err.message);
-  }
-}
-
-// User Schema
-const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  role: { type: String, enum: ['admin', 'editor', 'viewer'], default: 'viewer' }
-}, { timestamps: true });
-
-const User = mongoose.models.User || mongoose.model('User', userSchema);
 
 // Auth middleware
 const auth = (req, res, next) => {
@@ -56,7 +29,70 @@ const auth = (req, res, next) => {
 const DEMO_EMAIL = 'admin@cronstrom.net';
 const DEMO_PASSWORD = 'admin123';
 
+// Initialize database tables
+async function initDB() {
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        role VARCHAR(50) DEFAULT 'viewer',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    
+    await sql`
+      CREATE TABLE IF NOT EXISTS artworks (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        medium VARCHAR(255),
+        dimensions VARCHAR(255),
+        year VARCHAR(50),
+        image_url TEXT,
+        category VARCHAR(255),
+        description TEXT,
+        status VARCHAR(50) DEFAULT 'available',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS exhibitions (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        venue VARCHAR(255),
+        date VARCHAR(255),
+        category VARCHAR(50),
+        description TEXT,
+        is_current BOOLEAN DEFAULT false,
+        is_upcoming BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+
+    console.log('Database tables initialized');
+  } catch (err) {
+    console.error('Database init error:', err);
+  }
+}
+
 // Routes
+
+// Health check & DB init
+app.get('/api/health', async (req, res) => {
+  try {
+    await initDB();
+    res.json({ status: 'ok', database: 'connected', timestamp: new Date().toISOString() });
+  } catch (err) {
+    res.json({ status: 'ok', database: 'not connected', timestamp: new Date().toISOString() });
+  }
+});
+
+// AUTH ROUTES
+
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
 
@@ -71,23 +107,23 @@ app.post('/api/auth/login', async (req, res) => {
       },
     };
     const token = jwt.sign(payload, process.env.JWT_SECRET || 'demo-secret-key', { expiresIn: '7d' });
-    return res.json({ 
-      token,
-      user: payload.user
-    });
+    return res.json({ token, user: payload.user });
   }
 
   // Database login
   try {
-    await connectDB();
-    const user = await User.findOne({ email });
+    const { rows } = await sql`SELECT * FROM users WHERE email = ${email}`;
+    const user = rows[0];
+    
     if (!user) {
       return res.status(400).json({ error: 'Invalid credentials' });
     }
+    
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ error: 'Invalid credentials' });
     }
+    
     const payload = {
       user: {
         id: user.id,
@@ -99,13 +135,12 @@ app.post('/api/auth/login', async (req, res) => {
     const token = jwt.sign(payload, process.env.JWT_SECRET || 'demo-secret-key', { expiresIn: '7d' });
     res.json({ token, user: payload.user });
   } catch (err) {
-    console.error(err.message);
+    console.error('Login error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
 
 app.get('/api/auth/profile', auth, async (req, res) => {
-  // Demo user
   if (req.user.id === 'demo-admin-id') {
     return res.json({
       user: {
@@ -118,20 +153,133 @@ app.get('/api/auth/profile', auth, async (req, res) => {
   }
 
   try {
-    await connectDB();
-    const user = await User.findById(req.user.id).select('-password');
-    res.json({ user });
+    const { rows } = await sql`SELECT id, name, email, role FROM users WHERE id = ${req.user.id}`;
+    res.json({ user: rows[0] });
   } catch (err) {
-    console.error(err.message);
+    console.error('Profile error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+// ARTWORK ROUTES
+
+app.get('/api/artworks', async (req, res) => {
+  try {
+    const { rows } = await sql`SELECT * FROM artworks ORDER BY created_at DESC`;
+    res.json({ artworks: rows });
+  } catch (err) {
+    console.error('Get artworks error:', err);
+    res.json({ artworks: [] });
+  }
+});
+
+app.post('/api/artworks', auth, async (req, res) => {
+  const { title, medium, dimensions, year, image_url, category, description, status } = req.body;
+  
+  try {
+    const { rows } = await sql`
+      INSERT INTO artworks (title, medium, dimensions, year, image_url, category, description, status)
+      VALUES (${title}, ${medium}, ${dimensions}, ${year}, ${image_url}, ${category}, ${description}, ${status || 'available'})
+      RETURNING *
+    `;
+    res.json({ artwork: rows[0], message: 'Artwork created' });
+  } catch (err) {
+    console.error('Create artwork error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.put('/api/artworks/:id', auth, async (req, res) => {
+  const { id } = req.params;
+  const { title, medium, dimensions, year, image_url, category, description, status } = req.body;
+  
+  try {
+    const { rows } = await sql`
+      UPDATE artworks 
+      SET title = ${title}, medium = ${medium}, dimensions = ${dimensions}, 
+          year = ${year}, image_url = ${image_url}, category = ${category}, 
+          description = ${description}, status = ${status}, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ${id}
+      RETURNING *
+    `;
+    res.json({ artwork: rows[0], message: 'Artwork updated' });
+  } catch (err) {
+    console.error('Update artwork error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.delete('/api/artworks/:id', auth, async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    await sql`DELETE FROM artworks WHERE id = ${id}`;
+    res.json({ message: 'Artwork deleted' });
+  } catch (err) {
+    console.error('Delete artwork error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// EXHIBITION ROUTES
+
+app.get('/api/exhibitions', async (req, res) => {
+  try {
+    const { rows } = await sql`SELECT * FROM exhibitions ORDER BY created_at DESC`;
+    res.json({ exhibitions: rows });
+  } catch (err) {
+    console.error('Get exhibitions error:', err);
+    res.json({ exhibitions: [] });
+  }
+});
+
+app.post('/api/exhibitions', auth, async (req, res) => {
+  const { title, venue, date, category, description, is_current, is_upcoming } = req.body;
+  
+  try {
+    const { rows } = await sql`
+      INSERT INTO exhibitions (title, venue, date, category, description, is_current, is_upcoming)
+      VALUES (${title}, ${venue}, ${date}, ${category}, ${description}, ${is_current || false}, ${is_upcoming || false})
+      RETURNING *
+    `;
+    res.json({ exhibition: rows[0], message: 'Exhibition created' });
+  } catch (err) {
+    console.error('Create exhibition error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.put('/api/exhibitions/:id', auth, async (req, res) => {
+  const { id } = req.params;
+  const { title, venue, date, category, description, is_current, is_upcoming } = req.body;
+  
+  try {
+    const { rows } = await sql`
+      UPDATE exhibitions 
+      SET title = ${title}, venue = ${venue}, date = ${date}, 
+          category = ${category}, description = ${description},
+          is_current = ${is_current}, is_upcoming = ${is_upcoming}
+      WHERE id = ${id}
+      RETURNING *
+    `;
+    res.json({ exhibition: rows[0], message: 'Exhibition updated' });
+  } catch (err) {
+    console.error('Update exhibition error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.delete('/api/exhibitions/:id', auth, async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    await sql`DELETE FROM exhibitions WHERE id = ${id}`;
+    res.json({ message: 'Exhibition deleted' });
+  } catch (err) {
+    console.error('Delete exhibition error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 // Export for Vercel
 module.exports = app;
-
