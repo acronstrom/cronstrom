@@ -87,8 +87,7 @@ export function ArtworkModal({
         </div>
         
         <div className="w-full lg:w-1/3 h-1/2 lg:h-full overflow-y-auto p-8 lg:p-12 flex flex-col justify-center">
-          <h2 className="text-3xl md:text-4xl font-serif mb-2">{artwork.title}</h2>
-          <p className="text-neutral-500 text-lg mb-6">{artwork.year}</p>
+          <h2 className="text-3xl md:text-4xl font-serif mb-6">{artwork.title}</h2>
           
           <div className="space-y-6 mb-8">
              <div>
