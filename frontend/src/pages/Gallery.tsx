@@ -4,28 +4,47 @@ import { SectionHeader, ArtworkGrid } from '../components/shared/SharedComponent
 import { ArtworkModal } from '../components/shared/ArtworkModal';
 import type { Artwork } from '../lib/types';
 
-const STORAGE_KEY = 'cronstrom_artworks';
-
-// Load artworks from localStorage or use initial data
-function loadArtworks(): Artwork[] {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      return JSON.parse(stored);
-    }
-  } catch (e) {
-    console.error('Error loading artworks from localStorage:', e);
-  }
-  return initialArtworks;
-}
-
 export function Gallery() {
   const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setArtworks(loadArtworks());
+    loadArtworks();
   }, []);
+
+  const loadArtworks = async () => {
+    setIsLoading(true);
+    try {
+      // Try to load from API first
+      const response = await fetch('/api/artworks');
+      const data = await response.json();
+      
+      if (data.artworks && data.artworks.length > 0) {
+        // Map database fields to frontend format
+        const mapped = data.artworks.map((a: any) => ({
+          id: a.id.toString(),
+          title: a.title,
+          medium: a.medium || '',
+          dimensions: a.dimensions || '',
+          year: a.year || '',
+          imageUrl: a.image_url || '',
+          category: a.category || 'Galleri',
+          description: a.description || '',
+          status: a.status || 'available'
+        }));
+        setArtworks(mapped);
+      } else {
+        // Fallback to initial data
+        setArtworks(initialArtworks);
+      }
+    } catch (err) {
+      // Fallback to initial data
+      setArtworks(initialArtworks);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const galleryItems = artworks.filter(a => 
     a.category === 'Galleri' || 
@@ -59,6 +78,19 @@ export function Gallery() {
   const selectedArtwork = selectedIndex !== null ? galleryItems[selectedIndex] : null;
   const hasPrevious = selectedIndex !== null && selectedIndex > 0;
   const hasNext = selectedIndex !== null && selectedIndex < galleryItems.length - 1;
+
+  if (isLoading) {
+    return (
+      <section className="py-24 bg-white min-h-screen pt-32">
+        <div className="container mx-auto px-6 text-center">
+          <div className="animate-pulse">
+            <div className="h-8 bg-neutral-200 rounded w-48 mx-auto mb-4"></div>
+            <div className="h-4 bg-neutral-100 rounded w-64 mx-auto"></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <>

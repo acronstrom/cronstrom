@@ -10,51 +10,71 @@ import {
   Image as ImageIcon,
   Save,
   Check,
-  RotateCcw
+  RotateCcw,
+  Loader2
 } from 'lucide-react';
 import { artworks as initialArtworks } from '../../lib/data';
 import type { Artwork } from '../../lib/types';
 
 type EditingArtwork = Partial<Artwork> & { isNew?: boolean };
 
-const STORAGE_KEY = 'cronstrom_artworks';
-
-// Load artworks from localStorage or use initial data
-function loadArtworks(): Artwork[] {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      return JSON.parse(stored);
-    }
-  } catch (e) {
-    console.error('Error loading artworks from localStorage:', e);
-  }
-  return initialArtworks;
-}
-
-// Save artworks to localStorage
-function saveArtworksToStorage(artworks: Artwork[]) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(artworks));
-  } catch (e) {
-    console.error('Error saving artworks to localStorage:', e);
-  }
-}
+const API_BASE = '/api';
 
 export function GalleryManager() {
-  const [artworks, setArtworks] = useState<Artwork[]>(loadArtworks);
+  const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [editingArtwork, setEditingArtwork] = useState<EditingArtwork | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [uploadPreview, setUploadPreview] = useState<string | null>(null);
   const [showSaveNotification, setShowSaveNotification] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [useDatabase, setUseDatabase] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const categories = ['Galleri', 'Glasfusing', 'Textilmåleri', 'Nobel'];
 
-  // Save to localStorage whenever artworks change
+  // Load artworks from API or localStorage
   useEffect(() => {
-    saveArtworksToStorage(artworks);
-  }, [artworks]);
+    loadArtworks();
+  }, []);
+
+  const loadArtworks = async () => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE}/artworks`, {
+        headers: token ? { 'x-auth-token': token } : {}
+      });
+      const data = await response.json();
+      
+      if (data.artworks && data.artworks.length > 0) {
+        // Map database fields to frontend format
+        const mapped = data.artworks.map((a: any) => ({
+          id: a.id.toString(),
+          title: a.title,
+          medium: a.medium || '',
+          dimensions: a.dimensions || '',
+          year: a.year || '',
+          imageUrl: a.image_url || '',
+          category: a.category || 'Galleri',
+          description: a.description || '',
+          status: a.status || 'available'
+        }));
+        setArtworks(mapped);
+        setUseDatabase(true);
+      } else {
+        // Fallback to initial data if database is empty
+        setArtworks(initialArtworks);
+        setUseDatabase(false);
+      }
+    } catch (err) {
+      console.error('Error loading artworks:', err);
+      // Fallback to initial data
+      setArtworks(initialArtworks);
+      setUseDatabase(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const openNewArtwork = () => {
     setEditingArtwork({
@@ -66,7 +86,6 @@ export function GalleryManager() {
       imageUrl: '',
       category: 'Galleri',
       description: '',
-      price: '',
       status: 'available'
     });
     setUploadPreview(null);
@@ -96,51 +115,135 @@ export function GalleryManager() {
     setTimeout(() => setShowSaveNotification(false), 3000);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!editingArtwork) return;
 
-    if (editingArtwork.isNew) {
-      const newArtwork: Artwork = {
-        id: Date.now().toString(),
-        title: editingArtwork.title || 'Untitled',
-        medium: editingArtwork.medium || '',
-        dimensions: editingArtwork.dimensions || '',
-        year: editingArtwork.year || new Date().getFullYear().toString(),
-        imageUrl: editingArtwork.imageUrl || '',
-        category: editingArtwork.category || 'Galleri',
-        description: editingArtwork.description,
-        price: editingArtwork.price,
-        status: editingArtwork.status || 'available'
-      };
-      setArtworks([newArtwork, ...artworks]);
-    } else {
-      setArtworks(artworks.map(a => 
-        a.id === editingArtwork.id 
-          ? { ...a, ...editingArtwork } as Artwork
-          : a
-      ));
+    const token = localStorage.getItem('token');
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    if (token) headers['x-auth-token'] = token;
+
+    try {
+      if (editingArtwork.isNew) {
+        // Create new artwork
+        const response = await fetch(`${API_BASE}/artworks`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            title: editingArtwork.title || 'Untitled',
+            medium: editingArtwork.medium || '',
+            dimensions: editingArtwork.dimensions || '',
+            year: editingArtwork.year || new Date().getFullYear().toString(),
+            image_url: editingArtwork.imageUrl || '',
+            category: editingArtwork.category || 'Galleri',
+            description: editingArtwork.description || '',
+            status: editingArtwork.status || 'available'
+          })
+        });
+        
+        if (response.ok) {
+          await loadArtworks();
+          showNotification();
+        }
+      } else {
+        // Update existing artwork
+        const response = await fetch(`${API_BASE}/artworks/${editingArtwork.id}`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({
+            title: editingArtwork.title,
+            medium: editingArtwork.medium,
+            dimensions: editingArtwork.dimensions,
+            year: editingArtwork.year,
+            image_url: editingArtwork.imageUrl,
+            category: editingArtwork.category,
+            description: editingArtwork.description,
+            status: editingArtwork.status
+          })
+        });
+        
+        if (response.ok) {
+          await loadArtworks();
+          showNotification();
+        }
+      }
+    } catch (err) {
+      console.error('Error saving artwork:', err);
+      alert('Kunde inte spara. Försök igen.');
     }
 
     setIsModalOpen(false);
     setEditingArtwork(null);
     setUploadPreview(null);
-    showNotification();
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('Är du säker på att du vill ta bort detta verk?')) {
-      setArtworks(artworks.filter(a => a.id !== id));
-      showNotification();
+  const handleDelete = async (id: string) => {
+    if (!confirm('Är du säker på att du vill ta bort detta verk?')) return;
+
+    const token = localStorage.getItem('token');
+    
+    try {
+      const response = await fetch(`${API_BASE}/artworks/${id}`, {
+        method: 'DELETE',
+        headers: token ? { 'x-auth-token': token } : {}
+      });
+      
+      if (response.ok) {
+        await loadArtworks();
+        showNotification();
+      }
+    } catch (err) {
+      console.error('Error deleting artwork:', err);
+      alert('Kunde inte ta bort. Försök igen.');
     }
   };
 
-  const handleResetToDefault = () => {
-    if (confirm('Är du säker på att du vill återställa galleriet till originaldata? Alla ändringar kommer att försvinna.')) {
-      localStorage.removeItem(STORAGE_KEY);
-      setArtworks(initialArtworks);
+  const handleSyncToDatabase = async () => {
+    if (!confirm('Vill du synkronisera alla verk till databasen? Detta lägger till standardverken.')) return;
+
+    const token = localStorage.getItem('token');
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    if (token) headers['x-auth-token'] = token;
+
+    setIsLoading(true);
+    
+    try {
+      for (const artwork of initialArtworks) {
+        await fetch(`${API_BASE}/artworks`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            title: artwork.title,
+            medium: artwork.medium,
+            dimensions: artwork.dimensions,
+            year: artwork.year,
+            image_url: artwork.imageUrl,
+            category: artwork.category,
+            description: artwork.description || '',
+            status: artwork.status
+          })
+        });
+      }
+      await loadArtworks();
       showNotification();
+    } catch (err) {
+      console.error('Error syncing:', err);
+      alert('Kunde inte synkronisera. Försök igen.');
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+        <Loader2 className="animate-spin" size={32} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -161,19 +264,23 @@ export function GalleryManager() {
             </Link>
             <div>
               <h1 className="font-serif text-xl">Galleri</h1>
-              <p className="text-xs text-neutral-500">Hantera konstverk ({artworks.length} st)</p>
+              <p className="text-xs text-neutral-500">
+                {artworks.length} verk • {useDatabase ? '🟢 Databas' : '🟡 Lokal data'}
+              </p>
             </div>
           </div>
           
           <div className="flex items-center gap-3">
-            <button
-              onClick={handleResetToDefault}
-              className="flex items-center gap-2 border border-neutral-200 px-4 py-3 text-sm uppercase tracking-wider hover:bg-neutral-100 transition-colors"
-              title="Återställ till originaldata"
-            >
-              <RotateCcw size={18} />
-              Återställ
-            </button>
+            {!useDatabase && (
+              <button
+                onClick={handleSyncToDatabase}
+                className="flex items-center gap-2 border border-neutral-200 px-4 py-3 text-sm uppercase tracking-wider hover:bg-neutral-100 transition-colors"
+                title="Synkronisera till databas"
+              >
+                <RotateCcw size={18} />
+                Synka till DB
+              </button>
+            )}
             <button
               onClick={openNewArtwork}
               className="flex items-center gap-2 bg-black text-white px-6 py-3 text-sm uppercase tracking-wider hover:bg-neutral-800 transition-colors"
@@ -186,9 +293,12 @@ export function GalleryManager() {
       </header>
 
       {/* Info Banner */}
-      <div className="bg-blue-50 border-b border-blue-100 px-6 py-3">
-        <p className="container mx-auto text-sm text-blue-700">
-          <strong>Demo-läge:</strong> Ändringar sparas lokalt i din webbläsare. För permanent lagring krävs en databaskoppling.
+      <div className={`${useDatabase ? 'bg-green-50 border-green-100 text-green-700' : 'bg-blue-50 border-blue-100 text-blue-700'} border-b px-6 py-3`}>
+        <p className="container mx-auto text-sm">
+          {useDatabase 
+            ? <><strong>Databas ansluten:</strong> Ändringar sparas permanent i Vercel Postgres.</>
+            : <><strong>Lokal data:</strong> Klicka "Synka till DB" för att spara verken i databasen.</>
+          }
         </p>
       </div>
 
