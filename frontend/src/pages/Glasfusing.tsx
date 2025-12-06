@@ -68,9 +68,6 @@ function ImageModal({ image, onClose }: { image: GlasImage; onClose: () => void 
           alt={image.alt}
           className="max-w-full max-h-[85vh] object-contain"
         />
-        {image.caption && (
-          <p className="text-white/80 text-center mt-4 text-sm">{image.caption}</p>
-        )}
         <button 
           onClick={onClose}
           className="absolute -top-12 right-0 text-white/80 hover:text-white text-3xl"

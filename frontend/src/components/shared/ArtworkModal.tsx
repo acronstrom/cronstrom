@@ -99,13 +99,6 @@ export function ArtworkModal({
                <p className="text-neutral-800">{artwork.dimensions}</p>
              </div>
           </div>
-          
-          <a 
-            href={`mailto:hello@cronstrom.net?subject=Förfrågan: ${artwork.title}`}
-            className="block w-full py-4 bg-black text-white text-center uppercase tracking-widest text-sm hover:bg-neutral-800 transition-colors"
-          >
-            Skicka förfrågan
-          </a>
 
           {/* Navigation hint */}
           {(hasPrevious || hasNext) && (
