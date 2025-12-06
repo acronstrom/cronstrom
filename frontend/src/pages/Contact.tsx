@@ -9,6 +9,7 @@ export function Contact() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState('');
   const [canSubmit, setCanSubmit] = useState(false);
   const [countdown, setCountdown] = useState(5);
 
@@ -28,21 +29,43 @@ export function Contact() {
     if (!canSubmit) return;
     
     setIsSubmitting(true);
+    setError('');
     
-    // Create mailto link with form data
-    const subject = encodeURIComponent(`Kontaktförfrågan från ${formData.name}`);
-    const body = encodeURIComponent(
-      `Namn: ${formData.name}\nE-post: ${formData.email}\n\nMeddelande:\n${formData.message}`
-    );
-    
-    window.location.href = `mailto:lena@cronstrom.net?subject=${subject}&body=${body}`;
-    
-    // Short delay to allow mailto to open
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    setSubmitted(true);
-    setIsSubmitting(false);
-    setFormData({ name: '', email: '', message: '' });
+    try {
+      // Send via Formspree (free service)
+      // Replace 'xpwzgkqr' with your own Formspree form ID from https://formspree.io
+      const response = await fetch('https://formspree.io/f/xpwzgkqr', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          message: formData.message,
+          _replyto: formData.email,
+          _subject: `Kontaktförfrågan från ${formData.name}`
+        })
+      });
+
+      if (response.ok) {
+        setSubmitted(true);
+        setFormData({ name: '', email: '', message: '' });
+      } else {
+        throw new Error('Failed to send');
+      }
+    } catch (err) {
+      // Fallback to mailto if Formspree fails
+      const subject = encodeURIComponent(`Kontaktförfrågan från ${formData.name}`);
+      const body = encodeURIComponent(
+        `Namn: ${formData.name}\nE-post: ${formData.email}\n\nMeddelande:\n${formData.message}`
+      );
+      window.open(`mailto:lena@cronstrom.net?subject=${subject}&body=${body}`, '_blank');
+      setError('Formuläret kunde inte skickas automatiskt. Din e-postklient bör ha öppnats.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -75,11 +98,17 @@ export function Contact() {
             </motion.div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
+              {error && (
+                <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm rounded">
+                  {error}
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-xs uppercase tracking-wider text-neutral-500">Namn</label>
                   <input 
                     type="text" 
+                    name="name"
                     required
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
@@ -91,6 +120,7 @@ export function Contact() {
                   <label className="text-xs uppercase tracking-wider text-neutral-500">E-post</label>
                   <input 
                     type="email" 
+                    name="email"
                     required
                     value={formData.email}
                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
@@ -102,6 +132,7 @@ export function Contact() {
               <div className="space-y-2">
                 <label className="text-xs uppercase tracking-wider text-neutral-500">Meddelande</label>
                 <textarea 
+                  name="message"
                   required
                   value={formData.message}
                   onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
