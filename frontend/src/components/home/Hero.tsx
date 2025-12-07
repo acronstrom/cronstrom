@@ -80,12 +80,12 @@ export function Hero() {
               {artistBio.shortBio}
             </p>
             
-            {/* Se Samling Button */}
+            {/* Utforska Galleri Button */}
             <button 
               onClick={() => navigate('/galleri')}
               className="group px-10 py-4 bg-white text-black hover:bg-neutral-200 transition-all duration-300 flex items-center gap-3 text-sm uppercase tracking-widest"
             >
-              Se Samling
+              Utforska Galleri
               <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
             </button>
           </motion.div>
