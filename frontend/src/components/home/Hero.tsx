@@ -1,11 +1,51 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { artistBio } from '../../lib/data';
-import { UpcomingExhibitions } from './UpcomingExhibitions';
+import { artistBio, exhibitions as initialExhibitions } from '../../lib/data';
+import type { Exhibition } from '../../lib/types';
+import { API_BASE } from '../../lib/config';
 
 export function Hero() {
   const navigate = useNavigate();
+  const [exhibitions, setExhibitions] = useState<Exhibition[]>([]);
+
+  useEffect(() => {
+    loadExhibitions();
+  }, []);
+
+  const loadExhibitions = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/exhibitions`);
+      const data = await response.json();
+      
+      if (data.exhibitions && data.exhibitions.length > 0) {
+        const mapped = data.exhibitions.map((e: any) => ({
+          id: e.id.toString(),
+          title: e.title,
+          venue: e.venue,
+          location: e.venue,
+          date: e.date,
+          year: e.date,
+          category: e.category,
+          is_current: e.is_current,
+          is_upcoming: e.is_upcoming
+        }));
+        setExhibitions(mapped);
+      } else {
+        setExhibitions(initialExhibitions);
+      }
+    } catch (err) {
+      setExhibitions(initialExhibitions);
+    }
+  };
+
+  const currentExhibitions = exhibitions.filter(ex => (ex as any).is_current === true);
+  const upcomingExhibitions = exhibitions.filter(ex => 
+    (ex as any).is_upcoming === true && 
+    ex.category !== 'commission' && 
+    ex.category !== 'represented'
+  );
 
   return (
     <section className="relative h-screen flex items-end justify-start overflow-hidden">
@@ -16,12 +56,11 @@ export function Hero() {
           alt="Lena Cronström - Vita gäss III" 
           className="w-full h-full object-cover"
         />
-        {/* Modern Gradient Overlay: Dark at bottom for text readability, clear at top for art visibility */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80"></div>
       </div>
 
-      {/* Content - Positioned bottom-left for a modern editorial look */}
-      <div className="relative z-10 container mx-auto px-6 pb-24 md:pb-32">
+      {/* Content */}
+      <div className="relative z-10 container mx-auto px-6 pb-16 md:pb-24">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -38,7 +77,8 @@ export function Hero() {
             {artistBio.shortBio}
           </p>
           
-          <div className="flex flex-col sm:flex-row items-start gap-6">
+          {/* Buttons */}
+          <div className="flex flex-col sm:flex-row items-start gap-6 mb-12">
             <button 
               onClick={() => navigate('/galleri')}
               className="group px-10 py-4 bg-white text-black hover:bg-neutral-200 transition-all duration-300 flex items-center gap-3 text-sm uppercase tracking-widest"
@@ -54,11 +94,54 @@ export function Hero() {
               <span className="opacity-0 group-hover:opacity-100 transition-opacity">→</span>
             </button>
           </div>
+
+          {/* Exhibition Info - Below buttons with same underline style */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 1 }}
+            className="flex flex-col sm:flex-row gap-8 sm:gap-16"
+          >
+            {/* Pågående */}
+            <div className="group">
+              <p className="text-[11px] uppercase tracking-[0.25em] text-white/50 mb-3 border-b border-white/20 pb-2">
+                Pågående Utställningar
+              </p>
+              {currentExhibitions.length > 0 ? (
+                currentExhibitions.slice(0, 2).map((exhibition, index) => (
+                  <div key={exhibition.id || index} className="mb-2">
+                    <p className="text-white/80 text-sm">{exhibition.title}</p>
+                    <p className="text-white/40 text-xs">{exhibition.venue || exhibition.location}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-white/30 text-xs max-w-[200px]">
+                  Inga pågående utställningar just nu
+                </p>
+              )}
+            </div>
+
+            {/* Kommande */}
+            <div className="group">
+              <p className="text-[11px] uppercase tracking-[0.25em] text-white/50 mb-3 border-b border-white/20 pb-2">
+                Kommande Utställningar
+              </p>
+              {upcomingExhibitions.length > 0 ? (
+                upcomingExhibitions.slice(0, 2).map((exhibition, index) => (
+                  <div key={exhibition.id || index} className="mb-2">
+                    <p className="text-white/80 text-sm">{exhibition.title}</p>
+                    <p className="text-white/40 text-xs">{exhibition.venue || exhibition.location}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-white/30 text-xs max-w-[200px]">
+                  Inga kommande utställningar just nu
+                </p>
+              )}
+            </div>
+          </motion.div>
         </motion.div>
       </div>
-
-      {/* Upcoming Exhibitions - Discrete overlay in bottom right */}
-      <UpcomingExhibitions />
     </section>
   );
 }
