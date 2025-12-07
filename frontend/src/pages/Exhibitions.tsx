@@ -1,5 +1,6 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { exhibitions } from '../lib/data';
+import { exhibitions as initialExhibitions } from '../lib/data';
 import type { Exhibition } from '../lib/types';
 
 function ExhibitionItem({ exhibition }: { exhibition: Exhibition }) {
@@ -74,30 +75,63 @@ function ExhibitionSection({
 }
 
 export function Exhibitions() {
-  const currentYear = new Date().getFullYear();
-  
-  // Filter for current/ongoing exhibitions
-  const currentExhibitions = exhibitions.filter(ex => {
-    if (ex.category === 'kommande') {
-      const year = parseInt(ex.date || ex.year || '0');
-      return year === currentYear;
-    }
-    return false;
-  });
+  const [exhibitions, setExhibitions] = useState<Exhibition[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Filter for upcoming exhibitions (future)
-  const upcomingExhibitions = exhibitions.filter(ex => {
-    if (ex.category === 'kommande') {
-      const year = parseInt(ex.date || ex.year || '0');
-      return year > currentYear;
-    }
-    return false;
-  });
+  useEffect(() => {
+    loadExhibitions();
+  }, []);
 
-  const kommande = exhibitions.filter(e => e.category === 'kommande');
+  const loadExhibitions = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/exhibitions');
+      const data = await response.json();
+      
+      if (data.exhibitions && data.exhibitions.length > 0) {
+        const mapped = data.exhibitions.map((e: any) => ({
+          id: e.id.toString(),
+          title: e.title,
+          venue: e.venue,
+          location: e.venue,
+          date: e.date,
+          year: e.date,
+          category: e.category,
+          description: e.description,
+          is_current: e.is_current,
+          is_upcoming: e.is_upcoming
+        }));
+        setExhibitions(mapped);
+      } else {
+        setExhibitions(initialExhibitions);
+      }
+    } catch (err) {
+      setExhibitions(initialExhibitions);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Filter exhibitions by flags or category
+  const currentExhibitions = exhibitions.filter(e => (e as any).is_current === true);
+  const upcomingExhibitions = exhibitions.filter(e => (e as any).is_upcoming === true || e.category === 'kommande');
+  const kommande = exhibitions.filter(e => e.category === 'kommande' && !(e as any).is_current && !(e as any).is_upcoming);
   const separat = exhibitions.filter(e => e.category === 'separat');
   const samling = exhibitions.filter(e => e.category === 'samling');
   const jury = exhibitions.filter(e => e.category === 'jury');
+
+  if (isLoading) {
+    return (
+      <section className="min-h-screen bg-neutral-50 pt-32 pb-24">
+        <div className="container mx-auto px-6 text-center">
+          <div className="animate-pulse">
+            <div className="h-12 bg-neutral-200 rounded w-64 mx-auto mb-6"></div>
+            <div className="h-4 bg-neutral-100 rounded w-96 mx-auto"></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="min-h-screen bg-neutral-50 pt-32 pb-24">

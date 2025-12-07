@@ -1,26 +1,53 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { exhibitions } from '../../lib/data';
+import { exhibitions as initialExhibitions } from '../../lib/data';
+import type { Exhibition } from '../../lib/types';
 
 export function UpcomingExhibitions() {
-  const currentYear = new Date().getFullYear();
-  
-  // Filter for current/ongoing exhibitions
-  const currentExhibitions = exhibitions.filter(ex => {
-    if (ex.category === 'kommande') {
-      const year = parseInt(ex.date || ex.year || '0');
-      return year === currentYear;
-    }
-    return false;
-  });
+  const [exhibitions, setExhibitions] = useState<Exhibition[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Filter for upcoming exhibitions (future)
-  const upcomingExhibitions = exhibitions.filter(ex => {
-    if (ex.category === 'kommande') {
-      const year = parseInt(ex.date || ex.year || '0');
-      return year > currentYear;
+  useEffect(() => {
+    loadExhibitions();
+  }, []);
+
+  const loadExhibitions = async () => {
+    try {
+      const response = await fetch('/api/exhibitions');
+      const data = await response.json();
+      
+      if (data.exhibitions && data.exhibitions.length > 0) {
+        const mapped = data.exhibitions.map((e: any) => ({
+          id: e.id.toString(),
+          title: e.title,
+          venue: e.venue,
+          location: e.venue,
+          date: e.date,
+          year: e.date,
+          category: e.category,
+          is_current: e.is_current,
+          is_upcoming: e.is_upcoming
+        }));
+        setExhibitions(mapped);
+      } else {
+        setExhibitions(initialExhibitions);
+      }
+    } catch (err) {
+      setExhibitions(initialExhibitions);
+    } finally {
+      setIsLoading(false);
     }
-    return false;
-  });
+  };
+
+  // Filter for current/ongoing exhibitions (is_current flag)
+  const currentExhibitions = exhibitions.filter(ex => (ex as any).is_current === true);
+
+  // Filter for upcoming exhibitions (is_upcoming flag)
+  const upcomingExhibitions = exhibitions.filter(ex => (ex as any).is_upcoming === true);
+
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <motion.div

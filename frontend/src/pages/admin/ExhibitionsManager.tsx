@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Plus, Edit2, Trash2, Calendar, MapPin, Award, Users, Star, X, Save } from 'lucide-react';
+import { ArrowLeft, Plus, Edit2, Trash2, Calendar, MapPin, Award, Users, Star, X, Save, Loader2, RotateCcw, Check } from 'lucide-react';
 import { exhibitions as initialExhibitions } from '../../lib/data';
 import type { Exhibition } from '../../lib/types';
 
@@ -8,25 +8,82 @@ type CategoryFilter = 'all' | 'separat' | 'samling' | 'jury' | 'kommande' | 'com
 
 interface ExhibitionFormData {
   id?: string;
-  year: string;
   title: string;
-  location: string;
+  venue: string;
+  date: string;
   category: string;
+  description: string;
+  is_current: boolean;
+  is_upcoming: boolean;
 }
 
 const emptyForm: ExhibitionFormData = {
-  year: new Date().getFullYear().toString(),
   title: '',
-  location: '',
-  category: 'separat'
+  venue: '',
+  date: new Date().getFullYear().toString(),
+  category: 'separat',
+  description: '',
+  is_current: false,
+  is_upcoming: false
 };
 
+const API_BASE = '/api';
+
 export function ExhibitionsManager() {
-  const [exhibitionList, setExhibitionList] = useState<Exhibition[]>(initialExhibitions);
+  const [exhibitionList, setExhibitionList] = useState<Exhibition[]>([]);
   const [filter, setFilter] = useState<CategoryFilter>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingExhibition, setEditingExhibition] = useState<ExhibitionFormData | null>(null);
   const [formData, setFormData] = useState<ExhibitionFormData>(emptyForm);
+  const [isLoading, setIsLoading] = useState(true);
+  const [useDatabase, setUseDatabase] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
+
+  useEffect(() => {
+    loadExhibitions();
+  }, []);
+
+  const loadExhibitions = async () => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE}/exhibitions`, {
+        headers: token ? { 'x-auth-token': token } : {}
+      });
+      const data = await response.json();
+      
+      if (data.exhibitions && data.exhibitions.length > 0) {
+        const mapped = data.exhibitions.map((e: any) => ({
+          id: e.id.toString(),
+          title: e.title,
+          venue: e.venue,
+          location: e.venue,
+          date: e.date,
+          year: e.date,
+          category: e.category,
+          description: e.description,
+          is_current: e.is_current,
+          is_upcoming: e.is_upcoming
+        }));
+        setExhibitionList(mapped);
+        setUseDatabase(true);
+      } else {
+        setExhibitionList(initialExhibitions);
+        setUseDatabase(false);
+      }
+    } catch (err) {
+      console.error('Error loading exhibitions:', err);
+      setExhibitionList(initialExhibitions);
+      setUseDatabase(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const notify = () => {
+    setShowNotification(true);
+    setTimeout(() => setShowNotification(false), 3000);
+  };
 
   const filteredExhibitions = filter === 'all' 
     ? exhibitionList 
@@ -65,10 +122,13 @@ export function ExhibitionsManager() {
   const openEditModal = (exhibition: Exhibition) => {
     const data: ExhibitionFormData = {
       id: exhibition.id,
-      year: exhibition.year,
       title: exhibition.title,
-      location: exhibition.location,
-      category: exhibition.category || 'separat'
+      venue: exhibition.venue || exhibition.location || '',
+      date: exhibition.date || exhibition.year || '',
+      category: exhibition.category || 'separat',
+      description: exhibition.description || '',
+      is_current: (exhibition as any).is_current || false,
+      is_upcoming: (exhibition as any).is_upcoming || false
     };
     setFormData(data);
     setEditingExhibition(data);
@@ -81,39 +141,110 @@ export function ExhibitionsManager() {
     setFormData(emptyForm);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (editingExhibition?.id) {
-      // Update existing
-      setExhibitionList(prev => prev.map(ex => 
-        ex.id === editingExhibition.id 
-          ? { ...ex, ...formData }
-          : ex
-      ));
-    } else {
-      // Add new
-      const newExhibition: Exhibition = {
-        id: `ex-${Date.now()}`,
-        year: formData.year,
-        title: formData.title,
-        location: formData.location,
-        category: formData.category as Exhibition['category']
-      };
-      setExhibitionList(prev => [newExhibition, ...prev]);
+    const token = localStorage.getItem('token');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['x-auth-token'] = token;
+
+    try {
+      if (editingExhibition?.id) {
+        // Update existing
+        await fetch(`${API_BASE}/exhibitions/${editingExhibition.id}`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify(formData)
+        });
+      } else {
+        // Add new
+        await fetch(`${API_BASE}/exhibitions`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(formData)
+        });
+      }
+      await loadExhibitions();
+      notify();
+    } catch (err) {
+      console.error('Error saving exhibition:', err);
+      alert('Kunde inte spara. Försök igen.');
     }
     
     closeModal();
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Är du säker på att du vill ta bort denna utställning?')) {
-      setExhibitionList(prev => prev.filter(ex => ex.id !== id));
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Är du säker på att du vill ta bort denna utställning?')) return;
+    
+    const token = localStorage.getItem('token');
+    
+    try {
+      await fetch(`${API_BASE}/exhibitions/${id}`, {
+        method: 'DELETE',
+        headers: token ? { 'x-auth-token': token } : {}
+      });
+      await loadExhibitions();
+      notify();
+    } catch (err) {
+      console.error('Error deleting exhibition:', err);
+      alert('Kunde inte ta bort. Försök igen.');
     }
   };
 
+  const handleSyncToDatabase = async () => {
+    if (!confirm('Vill du synkronisera alla utställningar till databasen?')) return;
+
+    const token = localStorage.getItem('token');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['x-auth-token'] = token;
+
+    setIsLoading(true);
+    
+    try {
+      for (const ex of initialExhibitions) {
+        await fetch(`${API_BASE}/exhibitions`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            title: ex.title,
+            venue: ex.venue || ex.location,
+            date: ex.date || ex.year,
+            category: ex.category,
+            description: ex.description || '',
+            is_current: false,
+            is_upcoming: ex.category === 'kommande'
+          })
+        });
+      }
+      await loadExhibitions();
+      notify();
+    } catch (err) {
+      console.error('Error syncing:', err);
+      alert('Kunde inte synkronisera. Försök igen.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-neutral-100 flex items-center justify-center">
+        <Loader2 className="animate-spin" size={32} />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-neutral-100">
+      {/* Notification */}
+      {showNotification && (
+        <div className="fixed top-4 right-4 z-[100] bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
+          <Check size={18} />
+          <span>Ändringar sparade!</span>
+        </div>
+      )}
+
       {/* Header */}
       <header className="bg-white border-b border-neutral-200">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -121,17 +252,43 @@ export function ExhibitionsManager() {
             <Link to="/admin" className="text-neutral-500 hover:text-neutral-900 transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            <h1 className="text-xl font-serif">Hantera Utställningar</h1>
+            <div>
+              <h1 className="text-xl font-serif">Hantera Utställningar</h1>
+              <p className="text-xs text-neutral-500">
+                {exhibitionList.length} utställningar • {useDatabase ? '🟢 Databas' : '🟡 Lokal data'}
+              </p>
+            </div>
           </div>
-          <button 
-            onClick={openAddModal}
-            className="flex items-center gap-2 bg-neutral-900 text-white px-4 py-2 text-sm hover:bg-neutral-800 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Lägg till utställning
-          </button>
+          <div className="flex items-center gap-3">
+            {!useDatabase && (
+              <button 
+                onClick={handleSyncToDatabase}
+                className="flex items-center gap-2 border border-neutral-200 px-4 py-2 text-sm hover:bg-neutral-50 transition-colors"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Synka till DB
+              </button>
+            )}
+            <button 
+              onClick={openAddModal}
+              className="flex items-center gap-2 bg-neutral-900 text-white px-4 py-2 text-sm hover:bg-neutral-800 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Lägg till utställning
+            </button>
+          </div>
         </div>
       </header>
+
+      {/* Info Banner */}
+      <div className={`${useDatabase ? 'bg-green-50 border-green-100 text-green-700' : 'bg-blue-50 border-blue-100 text-blue-700'} border-b px-6 py-3`}>
+        <p className="max-w-7xl mx-auto text-sm">
+          {useDatabase 
+            ? <><strong>Databas ansluten:</strong> Ändringar sparas permanent och visas på hemsidan.</>
+            : <><strong>Lokal data:</strong> Klicka "Synka till DB" för att spara utställningarna i databasen.</>
+          }
+        </p>
+      </div>
 
       {/* Content */}
       <main className="max-w-7xl mx-auto px-6 py-8">
@@ -143,6 +300,16 @@ export function ExhibitionsManager() {
           >
             <p className="text-2xl font-serif">{exhibitionList.length}</p>
             <p className="text-sm opacity-70">Totalt</p>
+          </button>
+          <button 
+            onClick={() => setFilter('kommande')}
+            className={`p-4 rounded-lg text-left transition-colors ${filter === 'kommande' ? 'bg-green-600 text-white' : 'bg-white hover:bg-neutral-50'}`}
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <Calendar className="w-4 h-4" />
+              <span className="text-2xl font-serif">{kommandCount}</span>
+            </div>
+            <p className="text-sm opacity-70">Kommande</p>
           </button>
           <button 
             onClick={() => setFilter('separat')}
@@ -175,16 +342,6 @@ export function ExhibitionsManager() {
             <p className="text-sm opacity-70">Jury</p>
           </button>
           <button 
-            onClick={() => setFilter('kommande')}
-            className={`p-4 rounded-lg text-left transition-colors ${filter === 'kommande' ? 'bg-green-600 text-white' : 'bg-white hover:bg-neutral-50'}`}
-          >
-            <div className="flex items-center gap-2 mb-1">
-              <Calendar className="w-4 h-4" />
-              <span className="text-2xl font-serif">{kommandCount}</span>
-            </div>
-            <p className="text-sm opacity-70">Kommande</p>
-          </button>
-          <button 
             onClick={() => setFilter('commission')}
             className={`p-4 rounded-lg text-left transition-colors ${filter === 'commission' ? 'bg-teal-600 text-white' : 'bg-white hover:bg-neutral-50'}`}
           >
@@ -209,14 +366,20 @@ export function ExhibitionsManager() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <span className="text-lg font-bold text-neutral-400">{exhibition.year}</span>
+                      <span className="text-lg font-bold text-neutral-400">{exhibition.date || exhibition.year}</span>
                       <h3 className="font-medium text-lg">{exhibition.title || '—'}</h3>
                       {getCategoryBadge(exhibition.category)}
+                      {(exhibition as any).is_current && (
+                        <span className="px-2 py-0.5 rounded text-xs bg-red-100 text-red-700">Pågående</span>
+                      )}
+                      {(exhibition as any).is_upcoming && (
+                        <span className="px-2 py-0.5 rounded text-xs bg-orange-100 text-orange-700">Kommande</span>
+                      )}
                     </div>
                     <div className="flex flex-wrap gap-4 text-sm text-neutral-600">
                       <span className="flex items-center gap-1">
                         <MapPin className="w-4 h-4" />
-                        {exhibition.location}
+                        {exhibition.venue || exhibition.location}
                       </span>
                     </div>
                   </div>
@@ -247,10 +410,6 @@ export function ExhibitionsManager() {
             </div>
           )}
         </div>
-
-        <p className="text-center text-neutral-500 text-sm mt-8">
-          Obs: Ändringar sparas endast lokalt i denna session.
-        </p>
       </main>
 
       {/* Modal */}
@@ -272,20 +431,6 @@ export function ExhibitionsManager() {
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-1">
-                  År *
-                </label>
-                <input
-                  type="text"
-                  value={formData.year}
-                  onChange={e => setFormData(prev => ({ ...prev, year: e.target.value }))}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
-                  placeholder="2024"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">
                   Titel
                 </label>
                 <input
@@ -303,10 +448,24 @@ export function ExhibitionsManager() {
                 </label>
                 <input
                   type="text"
-                  value={formData.location}
-                  onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                  value={formData.venue}
+                  onChange={e => setFormData(prev => ({ ...prev, venue: e.target.value }))}
                   className="w-full px-4 py-2 border border-neutral-300 rounded focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
                   placeholder="Galleri, stad"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                  Datum/År *
+                </label>
+                <input
+                  type="text"
+                  value={formData.date}
+                  onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                  className="w-full px-4 py-2 border border-neutral-300 rounded focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
+                  placeholder="2024 eller 15 mars - 30 april 2024"
                   required
                 />
               </div>
@@ -321,13 +480,46 @@ export function ExhibitionsManager() {
                   className="w-full px-4 py-2 border border-neutral-300 rounded focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
                   required
                 >
+                  <option value="kommande">Kommande</option>
                   <option value="separat">Separatutställning</option>
                   <option value="samling">Samlingsutställning</option>
                   <option value="jury">Jurybedömd</option>
-                  <option value="kommande">Kommande</option>
                   <option value="commission">Uppdrag</option>
                   <option value="represented">Representerad</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                  Beskrivning
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  className="w-full px-4 py-2 border border-neutral-300 rounded focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent h-20 resize-none"
+                  placeholder="Kort beskrivning..."
+                />
+              </div>
+
+              <div className="flex gap-6">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.is_current}
+                    onChange={e => setFormData(prev => ({ ...prev, is_current: e.target.checked }))}
+                    className="rounded border-neutral-300"
+                  />
+                  <span className="text-sm">Pågående nu</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.is_upcoming}
+                    onChange={e => setFormData(prev => ({ ...prev, is_upcoming: e.target.checked }))}
+                    className="rounded border-neutral-300"
+                  />
+                  <span className="text-sm">Kommande</span>
+                </label>
               </div>
 
               <div className="flex gap-3 pt-4">
