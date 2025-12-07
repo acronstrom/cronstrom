@@ -1,8 +1,31 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Plus, Edit2, Trash2, GraduationCap, Calendar, X, Save, RefreshCcw, AlertTriangle, Users, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Plus, Edit2, Trash2, GraduationCap, Calendar, X, Save, RefreshCcw, AlertTriangle, Users, ExternalLink, Database } from 'lucide-react';
 
 const API_BASE = '/api';
+
+// Initial data to sync
+const initialEducationData = [
+  // Studier
+  { institution: 'Forsberg Design', degree: 'Konstnärligt grundår', year: '1979-80', type: 'education' },
+  { institution: 'Konstfack', degree: 'Textillinje', year: '1980-82', type: 'education' },
+  { institution: 'RMI Berghs', degree: 'AD-linje', year: '1982-83', type: 'education' },
+  { institution: 'Enebybergs Folkhögskola', degree: 'Akvarell', year: '2005-06', type: 'education' },
+  { institution: 'Gerlesborgsskolan', degree: 'Målarskola', year: '2007-08', type: 'education' },
+  { institution: 'Capellagårdens Glasstudio', degree: 'Storfors', year: '', type: 'education' },
+  { institution: 'Pilchuck Glass School', degree: 'Seattle, USA', year: '', type: 'education' },
+  { institution: 'Konstindustriskolan', degree: 'i Göteborg, enstaka kurser', year: '', type: 'education' },
+  
+  // Medlemskap
+  { institution: 'KRO', degree: 'Konstnärernas Riksorganisation', year: '', type: 'membership' },
+  { institution: 'Konstnärsklubben', degree: 'Medlem', year: '', type: 'membership' },
+  { institution: 'Svenska Akvarellsällskapet', degree: 'Medlem', year: '', type: 'membership' },
+  
+  // Länkar
+  { institution: 'KRO', degree: 'Konstnärernas Riksorganisation', year: '', type: 'link', url: 'https://www.kfrskane.se' },
+  { institution: 'Konstnärsklubben', degree: 'Stockholm', year: '', type: 'link', url: 'http://www.konstnarsklubben.com' },
+  { institution: 'Svenska Akvarellsällskapet', degree: '', year: '', type: 'link', url: 'https://akvarellsallskapet.se' },
+];
 
 interface EducationItem {
   id?: string;
@@ -146,6 +169,45 @@ export function EducationManager() {
     }
   };
 
+  const handleSyncToDB = async () => {
+    if (!window.confirm('Detta kommer att lägga till all utbildningsdata i databasen. Fortsätt?')) return;
+    
+    setIsSaving(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Clear existing data first
+      for (const item of educationList) {
+        if (item.id) {
+          await fetch(`${API_BASE}/education/${item.id}`, {
+            method: 'DELETE',
+            headers: token ? { 'x-auth-token': token } : {}
+          });
+        }
+      }
+      
+      // Add all initial data
+      for (const item of initialEducationData) {
+        await fetch(`${API_BASE}/education`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'x-auth-token': token } : {})
+          },
+          body: JSON.stringify(item)
+        });
+      }
+      
+      await fetchEducation();
+    } catch (err) {
+      console.error("Failed to sync:", err);
+      setError("Kunde inte synkronisera. Kontrollera databasanslutningen.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const getTypeLabel = (type: string) => {
     switch(type) {
       case 'education': return 'Utbildning';
@@ -183,6 +245,14 @@ export function EducationManager() {
             </span>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleSyncToDB}
+              disabled={isSaving || dbStatus !== 'connected'}
+              className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 text-sm hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Database className="w-4 h-4" />
+              Synka till DB
+            </button>
             <button
               onClick={() => openAddModal('education')}
               className="flex items-center gap-2 bg-neutral-900 text-white px-4 py-2 text-sm hover:bg-neutral-800 transition-colors"
