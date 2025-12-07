@@ -519,5 +519,57 @@ app.post('/api/upload', auth, async (req, res) => {
   }
 });
 
+// CONTACT FORM EMAIL ROUTE
+app.post('/api/contact', async (req, res) => {
+  const { name, email, message } = req.body;
+  
+  if (!name || !email || !message) {
+    return res.status(400).json({ error: 'Name, email and message are required' });
+  }
+
+  // Check if Resend API key is configured
+  if (!process.env.RESEND_API_KEY) {
+    console.error('RESEND_API_KEY not configured');
+    return res.status(503).json({ 
+      error: 'Email service not configured',
+      hint: 'Add RESEND_API_KEY in Vercel environment variables'
+    });
+  }
+
+  try {
+    const { Resend } = require('resend');
+    const resend = new Resend(process.env.RESEND_API_KEY);
+
+    const { data, error } = await resend.emails.send({
+      from: 'Kontaktformulär <onboarding@resend.dev>',
+      to: process.env.CONTACT_EMAIL || 'lena@cronstrom.net',
+      replyTo: email,
+      subject: `Nytt meddelande från ${name}`,
+      html: `
+        <h2>Nytt meddelande från kontaktformuläret</h2>
+        <p><strong>Från:</strong> ${name}</p>
+        <p><strong>E-post:</strong> ${email}</p>
+        <hr>
+        <p><strong>Meddelande:</strong></p>
+        <p>${message.replace(/\n/g, '<br>')}</p>
+        <hr>
+        <p style="color: #666; font-size: 12px;">
+          Skickat via kontaktformuläret på lena.cronstrom.net
+        </p>
+      `
+    });
+
+    if (error) {
+      console.error('Resend error:', error);
+      return res.status(500).json({ error: 'Failed to send email', details: error.message });
+    }
+
+    res.json({ success: true, message: 'Email sent successfully', id: data?.id });
+  } catch (err) {
+    console.error('Email error:', err);
+    res.status(500).json({ error: 'Failed to send email', details: err.message });
+  }
+});
+
 // Export for Vercel
 module.exports = app;
