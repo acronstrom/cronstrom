@@ -1,6 +1,5 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { motion } from 'motion/react';
-import { API_BASE } from '../lib/config';
 
 export function Contact() {
   const [formData, setFormData] = useState({
@@ -33,29 +32,30 @@ export function Contact() {
     setError('');
     
     try {
-      // Try Resend API first (via our backend)
-      const response = await fetch(`${API_BASE}/contact`, {
+      // Send via Formspree
+      const response = await fetch('https://formspree.io/f/mnnezkkz', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
-          message: formData.message
+          message: formData.message,
+          _replyto: formData.email,
+          _subject: `Kontaktförfrågan från ${formData.name}`
         })
       });
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
+      if (response.ok) {
         setSubmitted(true);
         setFormData({ name: '', email: '', message: '' });
       } else {
-        throw new Error(data.error || 'Failed to send');
+        throw new Error('Failed to send');
       }
     } catch (err) {
-      // Fallback to mailto if API fails
+      // Fallback to mailto if Formspree fails
       const subject = encodeURIComponent(`Kontaktförfrågan från ${formData.name}`);
       const body = encodeURIComponent(
         `Namn: ${formData.name}\nE-post: ${formData.email}\n\nMeddelande:\n${formData.message}`
