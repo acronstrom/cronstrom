@@ -97,8 +97,8 @@ export function Hero() {
             transition={{ duration: 1, delay: 0.5 }}
             className="md:max-w-sm"
           >
-            {/* Glassmorphic container */}
-            <div className="bg-white/5 backdrop-blur-md border border-white/10 p-6 md:p-8 relative">
+            {/* Glassmorphic container - more transparent */}
+            <div className="bg-black/10 backdrop-blur-sm border border-white/5 p-6 md:p-8 relative">
               {/* Decorative corner accent */}
               <div className="absolute top-0 left-0 w-12 h-[2px] bg-white/60"></div>
               <div className="absolute top-0 left-0 w-[2px] h-12 bg-white/60"></div>
