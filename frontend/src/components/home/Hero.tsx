@@ -76,9 +76,16 @@ export function Hero() {
             <h1 className="text-5xl md:text-8xl lg:text-9xl font-serif text-white mb-8 tracking-tighter leading-none drop-shadow-lg">
               {artistBio.name}
             </h1>
-            <p className="max-w-xl text-neutral-200 mb-10 text-lg md:text-xl font-light leading-relaxed drop-shadow-md">
-              {artistBio.shortBio}
-            </p>
+            
+            {/* Artist Statement - Frosted Glass */}
+            <div className="relative max-w-xl mb-10">
+              <div className="absolute inset-0 bg-white/10 backdrop-blur-md rounded-lg"></div>
+              <div className="relative p-6 border border-white/20 rounded-lg">
+                <p className="text-white/90 text-lg md:text-xl font-light leading-relaxed italic">
+                  {artistBio.shortBio}
+                </p>
+              </div>
+            </div>
             
             {/* Utforska Galleri Button */}
             <button 
