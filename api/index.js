@@ -2,13 +2,25 @@ const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { sql } = require('@vercel/postgres');
 
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Check if Postgres is available
+let sql;
+let dbConnected = false;
+
+try {
+  const postgres = require('@vercel/postgres');
+  sql = postgres.sql;
+  dbConnected = true;
+} catch (err) {
+  console.log('Vercel Postgres not available, running in demo mode');
+  dbConnected = false;
+}
 
 // Auth middleware
 const auth = (req, res, next) => {
@@ -31,6 +43,11 @@ const DEMO_PASSWORD = 'admin123';
 
 // Initialize database tables
 async function initDB() {
+  if (!dbConnected || !sql) {
+    console.log('Database not connected, skipping init');
+    return false;
+  }
+  
   try {
     await sql`
       CREATE TABLE IF NOT EXISTS users (
@@ -74,8 +91,10 @@ async function initDB() {
     `;
 
     console.log('Database tables initialized');
+    return true;
   } catch (err) {
     console.error('Database init error:', err);
+    return false;
   }
 }
 
@@ -84,10 +103,24 @@ async function initDB() {
 // Health check & DB init
 app.get('/api/health', async (req, res) => {
   try {
-    await initDB();
-    res.json({ status: 'ok', database: 'connected', timestamp: new Date().toISOString() });
+    const dbInit = await initDB();
+    res.json({ 
+      status: 'ok', 
+      database: dbConnected && dbInit ? 'connected' : 'not connected',
+      postgres_available: dbConnected,
+      timestamp: new Date().toISOString(),
+      env_check: {
+        POSTGRES_URL: !!process.env.POSTGRES_URL,
+        JWT_SECRET: !!process.env.JWT_SECRET
+      }
+    });
   } catch (err) {
-    res.json({ status: 'ok', database: 'not connected', timestamp: new Date().toISOString() });
+    res.json({ 
+      status: 'ok', 
+      database: 'error', 
+      error: err.message,
+      timestamp: new Date().toISOString() 
+    });
   }
 });
 
@@ -164,32 +197,46 @@ app.get('/api/auth/profile', auth, async (req, res) => {
 // ARTWORK ROUTES
 
 app.get('/api/artworks', async (req, res) => {
+  if (!dbConnected || !sql) {
+    return res.json({ artworks: [], database: false });
+  }
+  
   try {
+    await initDB();
     const { rows } = await sql`SELECT * FROM artworks ORDER BY created_at DESC`;
-    res.json({ artworks: rows });
+    res.json({ artworks: rows, database: true });
   } catch (err) {
     console.error('Get artworks error:', err);
-    res.json({ artworks: [] });
+    res.json({ artworks: [], database: false, error: err.message });
   }
 });
 
 app.post('/api/artworks', auth, async (req, res) => {
+  if (!dbConnected || !sql) {
+    return res.status(503).json({ error: 'Database not connected' });
+  }
+  
   const { title, medium, dimensions, year, image_url, category, description, status } = req.body;
   
   try {
+    await initDB();
     const { rows } = await sql`
       INSERT INTO artworks (title, medium, dimensions, year, image_url, category, description, status)
       VALUES (${title}, ${medium}, ${dimensions}, ${year}, ${image_url}, ${category}, ${description}, ${status || 'available'})
       RETURNING *
     `;
-    res.json({ artwork: rows[0], message: 'Artwork created' });
+    res.json({ artwork: rows[0], message: 'Artwork created', database: true });
   } catch (err) {
     console.error('Create artwork error:', err);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: err.message });
   }
 });
 
 app.put('/api/artworks/:id', auth, async (req, res) => {
+  if (!dbConnected || !sql) {
+    return res.status(503).json({ error: 'Database not connected' });
+  }
+  
   const { id } = req.params;
   const { title, medium, dimensions, year, image_url, category, description, status } = req.body;
   
@@ -205,11 +252,15 @@ app.put('/api/artworks/:id', auth, async (req, res) => {
     res.json({ artwork: rows[0], message: 'Artwork updated' });
   } catch (err) {
     console.error('Update artwork error:', err);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: err.message });
   }
 });
 
 app.delete('/api/artworks/:id', auth, async (req, res) => {
+  if (!dbConnected || !sql) {
+    return res.status(503).json({ error: 'Database not connected' });
+  }
+  
   const { id } = req.params;
   
   try {
@@ -217,39 +268,53 @@ app.delete('/api/artworks/:id', auth, async (req, res) => {
     res.json({ message: 'Artwork deleted' });
   } catch (err) {
     console.error('Delete artwork error:', err);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: err.message });
   }
 });
 
 // EXHIBITION ROUTES
 
 app.get('/api/exhibitions', async (req, res) => {
+  if (!dbConnected || !sql) {
+    return res.json({ exhibitions: [], database: false });
+  }
+  
   try {
+    await initDB();
     const { rows } = await sql`SELECT * FROM exhibitions ORDER BY created_at DESC`;
-    res.json({ exhibitions: rows });
+    res.json({ exhibitions: rows, database: true });
   } catch (err) {
     console.error('Get exhibitions error:', err);
-    res.json({ exhibitions: [] });
+    res.json({ exhibitions: [], database: false, error: err.message });
   }
 });
 
 app.post('/api/exhibitions', auth, async (req, res) => {
+  if (!dbConnected || !sql) {
+    return res.status(503).json({ error: 'Database not connected' });
+  }
+  
   const { title, venue, date, category, description, is_current, is_upcoming } = req.body;
   
   try {
+    await initDB();
     const { rows } = await sql`
       INSERT INTO exhibitions (title, venue, date, category, description, is_current, is_upcoming)
       VALUES (${title}, ${venue}, ${date}, ${category}, ${description}, ${is_current || false}, ${is_upcoming || false})
       RETURNING *
     `;
-    res.json({ exhibition: rows[0], message: 'Exhibition created' });
+    res.json({ exhibition: rows[0], message: 'Exhibition created', database: true });
   } catch (err) {
     console.error('Create exhibition error:', err);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: err.message });
   }
 });
 
 app.put('/api/exhibitions/:id', auth, async (req, res) => {
+  if (!dbConnected || !sql) {
+    return res.status(503).json({ error: 'Database not connected' });
+  }
+  
   const { id } = req.params;
   const { title, venue, date, category, description, is_current, is_upcoming } = req.body;
   
@@ -265,11 +330,15 @@ app.put('/api/exhibitions/:id', auth, async (req, res) => {
     res.json({ exhibition: rows[0], message: 'Exhibition updated' });
   } catch (err) {
     console.error('Update exhibition error:', err);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: err.message });
   }
 });
 
 app.delete('/api/exhibitions/:id', auth, async (req, res) => {
+  if (!dbConnected || !sql) {
+    return res.status(503).json({ error: 'Database not connected' });
+  }
+  
   const { id } = req.params;
   
   try {
@@ -277,7 +346,7 @@ app.delete('/api/exhibitions/:id', auth, async (req, res) => {
     res.json({ message: 'Exhibition deleted' });
   } catch (err) {
     console.error('Delete exhibition error:', err);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: err.message });
   }
 });
 
