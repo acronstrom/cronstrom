@@ -193,7 +193,7 @@ export function ExhibitionsManager() {
   };
 
   const handleSyncToDatabase = async () => {
-    if (!confirm('Vill du synkronisera alla utställningar till databasen?')) return;
+    if (!confirm('Vill du synkronisera alla utställningar till databasen? Detta lägger till standarddata.')) return;
 
     const token = localStorage.getItem('token');
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -203,6 +203,9 @@ export function ExhibitionsManager() {
     
     try {
       for (const ex of initialExhibitions) {
+        // Don't mark commission/represented as upcoming
+        const isCommissionOrRep = ex.category === 'commission' || ex.category === 'represented' || ex.category === 'kommande';
+        
         await fetch(`${API_BASE}/exhibitions`, {
           method: 'POST',
           headers,
@@ -210,10 +213,11 @@ export function ExhibitionsManager() {
             title: ex.title,
             venue: ex.venue || ex.location,
             date: ex.date || ex.year,
-            category: ex.category,
+            // Map old 'kommande' category to appropriate new category
+            category: ex.category === 'kommande' ? 'commission' : ex.category,
             description: ex.description || '',
             is_current: false,
-            is_upcoming: ex.category === 'kommande'
+            is_upcoming: false // Don't auto-mark as upcoming - user should set this manually
           })
         });
       }
@@ -222,6 +226,31 @@ export function ExhibitionsManager() {
     } catch (err) {
       console.error('Error syncing:', err);
       alert('Kunde inte synkronisera. Försök igen.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleClearDatabase = async () => {
+    if (!confirm('⚠️ Detta tar bort ALLA utställningar från databasen. Är du säker?')) return;
+
+    const token = localStorage.getItem('token');
+    
+    setIsLoading(true);
+    
+    try {
+      // Delete all exhibitions
+      for (const ex of exhibitionList) {
+        await fetch(`${API_BASE}/exhibitions/${ex.id}`, {
+          method: 'DELETE',
+          headers: token ? { 'x-auth-token': token } : {}
+        });
+      }
+      await loadExhibitions();
+      notify();
+    } catch (err) {
+      console.error('Error clearing:', err);
+      alert('Kunde inte rensa. Försök igen.');
     } finally {
       setIsLoading(false);
     }
@@ -260,6 +289,15 @@ export function ExhibitionsManager() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            {useDatabase && (
+              <button 
+                onClick={handleClearDatabase}
+                className="flex items-center gap-2 border border-red-200 text-red-600 px-4 py-2 text-sm hover:bg-red-50 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                Rensa DB
+              </button>
+            )}
             {!useDatabase && (
               <button 
                 onClick={handleSyncToDatabase}
