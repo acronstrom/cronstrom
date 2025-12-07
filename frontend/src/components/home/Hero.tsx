@@ -90,58 +90,73 @@ export function Hero() {
             </button>
           </motion.div>
 
-          {/* Right Column - Exhibitions */}
+          {/* Right Column - Exhibitions Panel */}
           <motion.div 
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 1, delay: 0.5 }}
-            className="md:text-right md:max-w-sm"
+            className="md:max-w-sm"
           >
-            {/* Link to exhibitions page */}
-            <button 
-              onClick={() => navigate('/utstallningar')}
-              className="group mb-8 text-white border-b border-white/30 hover:border-white transition-all duration-300 inline-flex items-center gap-2 text-sm uppercase tracking-widest pb-1"
-            >
-              Aktuella Utställningar
-              <span className="opacity-0 group-hover:opacity-100 transition-opacity">→</span>
-            </button>
+            {/* Glassmorphic container */}
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 p-6 md:p-8 relative">
+              {/* Decorative corner accent */}
+              <div className="absolute top-0 left-0 w-12 h-[2px] bg-white/60"></div>
+              <div className="absolute top-0 left-0 w-[2px] h-12 bg-white/60"></div>
+              
+              {/* Link to exhibitions page */}
+              <button 
+                onClick={() => navigate('/utstallningar')}
+                className="group mb-6 text-white hover:text-white/80 transition-all duration-300 flex items-center gap-3 text-sm uppercase tracking-[0.2em] font-medium"
+              >
+                <span className="w-8 h-[1px] bg-white/60 group-hover:w-12 transition-all duration-300"></span>
+                Aktuella Utställningar
+                <span className="opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+              </button>
 
-            {/* Pågående */}
-            <div className="mb-8">
-              <p className="text-[11px] uppercase tracking-[0.25em] text-white/50 mb-3 border-b border-white/20 pb-2 md:border-b-0 md:border-t md:pt-2 md:pb-0">
-                Pågående Utställningar
-              </p>
-              {currentExhibitions.length > 0 ? (
-                currentExhibitions.slice(0, 2).map((exhibition, index) => (
-                  <div key={exhibition.id || index} className="mb-3">
-                    <p className="text-white/90 text-base font-light">{exhibition.title}</p>
-                    <p className="text-white/50 text-sm">{exhibition.venue || exhibition.location}</p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-white/40 text-sm">
-                  Inga pågående utställningar just nu
+              {/* Pågående */}
+              <div className="mb-6">
+                <p className="text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3">
+                  Pågående
                 </p>
-              )}
-            </div>
+                {currentExhibitions.length > 0 ? (
+                  currentExhibitions.slice(0, 2).map((exhibition, index) => (
+                    <div key={exhibition.id || index} className="mb-3">
+                      <p className="text-white text-lg font-serif">{exhibition.title}</p>
+                      <p className="text-white/50 text-sm">{exhibition.venue || exhibition.location}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-white/30 text-sm italic">
+                    Inga pågående just nu
+                  </p>
+                )}
+              </div>
 
-            {/* Kommande */}
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.25em] text-white/50 mb-3 border-b border-white/20 pb-2 md:border-b-0 md:border-t md:pt-2 md:pb-0">
-                Kommande Utställningar
-              </p>
-              {upcomingExhibitions.length > 0 ? (
-                upcomingExhibitions.slice(0, 2).map((exhibition, index) => (
-                  <div key={exhibition.id || index} className="mb-3">
-                    <p className="text-white/90 text-base font-light">{exhibition.title}</p>
-                    <p className="text-white/50 text-sm">{exhibition.venue || exhibition.location}</p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-white/40 text-sm">
-                  Inga kommande utställningar just nu
+              {/* Divider */}
+              <div className="w-full h-[1px] bg-gradient-to-r from-white/20 via-white/10 to-transparent mb-6"></div>
+
+              {/* Kommande */}
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3">
+                  Kommande
                 </p>
-              )}
+                {upcomingExhibitions.length > 0 ? (
+                  upcomingExhibitions.slice(0, 2).map((exhibition, index) => (
+                    <div key={exhibition.id || index} className="mb-3">
+                      <p className="text-white text-lg font-serif">{exhibition.title}</p>
+                      <p className="text-white/50 text-sm">{exhibition.venue || exhibition.location}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-white/30 text-sm italic">
+                    Inga kommande just nu
+                  </p>
+                )}
+              </div>
+
+              {/* Bottom decorative accent */}
+              <div className="absolute bottom-0 right-0 w-12 h-[2px] bg-white/30"></div>
+              <div className="absolute bottom-0 right-0 w-[2px] h-12 bg-white/30"></div>
             </div>
           </motion.div>
         </div>
