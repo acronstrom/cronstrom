@@ -98,15 +98,60 @@ export function GalleryManager() {
     setIsModalOpen(true);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setUploadPreview(reader.result as string);
-        setEditingArtwork(prev => prev ? { ...prev, imageUrl: reader.result as string } : null);
+    if (!file) return;
+
+    // Show preview immediately
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setUploadPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    // Try to upload to Vercel Blob
+    setIsUploading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const base64Reader = new FileReader();
+      
+      base64Reader.onloadend = async () => {
+        const base64Data = base64Reader.result as string;
+        
+        const response = await fetch(`${API_BASE}/upload`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'x-auth-token': token } : {})
+          },
+          body: JSON.stringify({
+            filename: file.name,
+            contentType: file.type,
+            data: base64Data
+          })
+        });
+
+        const data = await response.json();
+        
+        if (data.url) {
+          // Successfully uploaded - use the blob URL
+          setEditingArtwork(prev => prev ? { ...prev, imageUrl: data.url } : null);
+          setUploadPreview(data.url);
+        } else {
+          // Upload failed - keep base64 for preview but warn user
+          console.warn('Upload failed:', data.error);
+          alert('Bilduppladdning misslyckades. Använd en bildlänk (URL) istället.\n\nTips: Ladda upp bilden till din WordPress-sajt och kopiera länken.');
+        }
+        setIsUploading(false);
       };
-      reader.readAsDataURL(file);
+      
+      base64Reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('Upload error:', err);
+      setIsUploading(false);
+      alert('Bilduppladdning misslyckades. Använd en bildlänk (URL) istället.');
     }
   };
 
@@ -380,8 +425,8 @@ export function GalleryManager() {
                   Bild
                 </label>
                 <div 
-                  className="border-2 border-dashed border-neutral-200 hover:border-neutral-400 transition-colors cursor-pointer aspect-video bg-neutral-50 flex items-center justify-center overflow-hidden"
-                  onClick={() => fileInputRef.current?.click()}
+                  className={`border-2 border-dashed border-neutral-200 hover:border-neutral-400 transition-colors cursor-pointer aspect-video bg-neutral-50 flex items-center justify-center overflow-hidden relative ${isUploading ? 'opacity-50' : ''}`}
+                  onClick={() => !isUploading && fileInputRef.current?.click()}
                 >
                   {uploadPreview ? (
                     <img src={uploadPreview} alt="Preview" className="w-full h-full object-contain" />
@@ -391,6 +436,12 @@ export function GalleryManager() {
                       <p className="text-sm text-neutral-500">Klicka för att ladda upp</p>
                     </div>
                   )}
+                  {isUploading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white/80">
+                      <Loader2 className="animate-spin" size={32} />
+                      <span className="ml-2 text-sm">Laddar upp...</span>
+                    </div>
+                  )}
                 </div>
                 <input
                   ref={fileInputRef}
@@ -398,12 +449,13 @@ export function GalleryManager() {
                   accept="image/*"
                   onChange={handleFileChange}
                   className="hidden"
+                  disabled={isUploading}
                 />
                 
                 {/* Image URL input */}
                 <div className="mt-3">
                   <label className="block text-xs uppercase tracking-wider text-neutral-400 mb-1">
-                    Eller ange bildlänk (URL)
+                    Eller ange bildlänk (URL) - Rekommenderas!
                   </label>
                   <input
                     type="text"
@@ -413,8 +465,11 @@ export function GalleryManager() {
                       setUploadPreview(e.target.value);
                     }}
                     className="w-full border border-neutral-200 p-2 text-sm focus:border-neutral-400 focus:outline-none"
-                    placeholder="https://example.com/bild.jpg"
+                    placeholder="https://cronstrom.net/wp-content/uploads/..."
                   />
+                  <p className="text-xs text-neutral-400 mt-1">
+                    Tips: Ladda upp bilden till WordPress och klistra in länken här
+                  </p>
                 </div>
               </div>
 

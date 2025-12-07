@@ -350,5 +350,39 @@ app.delete('/api/exhibitions/:id', auth, async (req, res) => {
   }
 });
 
+// IMAGE UPLOAD ROUTE
+app.post('/api/upload', auth, async (req, res) => {
+  try {
+    const { put } = require('@vercel/blob');
+    const { filename, contentType, data } = req.body;
+    
+    if (!data) {
+      return res.status(400).json({ error: 'No image data provided' });
+    }
+    
+    // Convert base64 to buffer
+    const base64Data = data.replace(/^data:image\/\w+;base64,/, '');
+    const buffer = Buffer.from(base64Data, 'base64');
+    
+    // Upload to Vercel Blob
+    const blob = await put(filename || `artwork-${Date.now()}.jpg`, buffer, {
+      access: 'public',
+      contentType: contentType || 'image/jpeg'
+    });
+    
+    res.json({ url: blob.url, message: 'Image uploaded successfully' });
+  } catch (err) {
+    console.error('Upload error:', err);
+    // If blob storage isn't configured, return helpful error
+    if (err.message.includes('BLOB')) {
+      return res.status(503).json({ 
+        error: 'Blob storage not configured. Use image URLs instead.',
+        hint: 'Add BLOB_READ_WRITE_TOKEN in Vercel Storage settings'
+      });
+    }
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Export for Vercel
 module.exports = app;
