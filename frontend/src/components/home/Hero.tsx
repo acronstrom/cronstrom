@@ -115,7 +115,7 @@ export function Hero() {
 
               {/* Pågående */}
               <div className="mb-6">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3">
+                <p className="text-xs uppercase tracking-[0.2em] text-white/70 mb-3 font-medium">
                   Pågående
                 </p>
                 {currentExhibitions.length > 0 ? (
@@ -137,7 +137,7 @@ export function Hero() {
 
               {/* Kommande */}
               <div>
-                <p className="text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3">
+                <p className="text-xs uppercase tracking-[0.2em] text-white/70 mb-3 font-medium">
                   Kommande
                 </p>
                 {upcomingExhibitions.length > 0 ? (
