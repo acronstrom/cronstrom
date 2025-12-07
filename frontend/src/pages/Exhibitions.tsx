@@ -114,8 +114,12 @@ export function Exhibitions() {
 
   // Filter exhibitions by flags or category
   const currentExhibitions = exhibitions.filter(e => (e as any).is_current === true);
-  const upcomingExhibitions = exhibitions.filter(e => (e as any).is_upcoming === true || e.category === 'kommande');
-  const kommande = exhibitions.filter(e => e.category === 'kommande' && !(e as any).is_current && !(e as any).is_upcoming);
+  const upcomingExhibitions = exhibitions.filter(e => 
+    (e as any).is_upcoming === true && 
+    e.category !== 'commission' && 
+    e.category !== 'represented'
+  );
+  const representerad = exhibitions.filter(e => e.category === 'commission' || e.category === 'represented');
   const separat = exhibitions.filter(e => e.category === 'separat');
   const samling = exhibitions.filter(e => e.category === 'samling');
   const jury = exhibitions.filter(e => e.category === 'jury');
@@ -217,8 +221,8 @@ export function Exhibitions() {
           </div>
         </motion.div>
 
-        {/* Featured: Uppdrag */}
-        {kommande.length > 0 && (
+        {/* Featured: Uppdrag & Representerad */}
+        {representerad.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -230,7 +234,7 @@ export function Exhibitions() {
               Uppdrag & Representerad
             </h2>
             <div className="space-y-6">
-              {kommande.map((ex, i) => (
+              {representerad.map((ex, i) => (
                 <div key={ex.id || i}>
                   <h3 className="text-2xl font-serif text-neutral-900 mb-1">
                     {ex.title}

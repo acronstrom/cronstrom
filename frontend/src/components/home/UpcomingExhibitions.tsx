@@ -42,8 +42,12 @@ export function UpcomingExhibitions() {
   // Filter for current/ongoing exhibitions (is_current flag)
   const currentExhibitions = exhibitions.filter(ex => (ex as any).is_current === true);
 
-  // Filter for upcoming exhibitions (is_upcoming flag)
-  const upcomingExhibitions = exhibitions.filter(ex => (ex as any).is_upcoming === true);
+  // Filter for upcoming exhibitions (is_upcoming flag, excluding represented/commission)
+  const upcomingExhibitions = exhibitions.filter(ex => 
+    (ex as any).is_upcoming === true && 
+    ex.category !== 'commission' && 
+    ex.category !== 'represented'
+  );
 
   if (isLoading) {
     return null;
