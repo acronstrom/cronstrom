@@ -90,6 +90,19 @@ async function initDB() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
+    
+    // Create education table
+    await sql`
+      CREATE TABLE IF NOT EXISTS education (
+        id SERIAL PRIMARY KEY,
+        institution VARCHAR(255) NOT NULL,
+        degree VARCHAR(255),
+        year VARCHAR(50),
+        type VARCHAR(50) DEFAULT 'education',
+        url VARCHAR(500),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
 
     console.log('Database tables initialized');
     return true;
@@ -347,6 +360,82 @@ app.delete('/api/exhibitions/:id', auth, async (req, res) => {
     res.json({ message: 'Exhibition deleted' });
   } catch (err) {
     console.error('Delete exhibition error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// EDUCATION ROUTES
+app.get('/api/education', async (req, res) => {
+  if (!dbConnected || !sql) {
+    return res.json({ education: [], database: false });
+  }
+  
+  try {
+    await initDB();
+    const { rows } = await sql`SELECT * FROM education ORDER BY year DESC`;
+    res.json({ education: rows, database: true });
+  } catch (err) {
+    console.error('Get education error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/education', auth, async (req, res) => {
+  if (!dbConnected || !sql) {
+    return res.status(503).json({ error: 'Database not connected' });
+  }
+  
+  const { institution, degree, year, type, url } = req.body;
+  
+  try {
+    await initDB();
+    const { rows } = await sql`
+      INSERT INTO education (institution, degree, year, type, url)
+      VALUES (${institution}, ${degree}, ${year}, ${type || 'education'}, ${url || null})
+      RETURNING *
+    `;
+    res.json({ education: rows[0], message: 'Education created', database: true });
+  } catch (err) {
+    console.error('Create education error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/education/:id', auth, async (req, res) => {
+  if (!dbConnected || !sql) {
+    return res.status(503).json({ error: 'Database not connected' });
+  }
+  
+  const { id } = req.params;
+  const { institution, degree, year, type, url } = req.body;
+  
+  try {
+    const { rows } = await sql`
+      UPDATE education 
+      SET institution = ${institution}, degree = ${degree}, year = ${year}, 
+          type = ${type || 'education'}, url = ${url || null}
+      WHERE id = ${id}
+      RETURNING *
+    `;
+    res.json({ education: rows[0], message: 'Education updated' });
+  } catch (err) {
+    console.error('Update education error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/education/:id', auth, async (req, res) => {
+  if (!dbConnected || !sql) {
+    return res.status(503).json({ error: 'Database not connected' });
+  }
+  
+  const { id } = req.params;
+  
+  try {
+    await sql`DELETE FROM education WHERE id = ${id}`;
+    res.json({ message: 'Education deleted' });
+  } catch (err) {
+    console.error('Delete education error:', err);
     res.status(500).json({ error: err.message });
   }
 });
