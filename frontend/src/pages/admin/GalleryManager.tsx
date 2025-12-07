@@ -100,58 +100,89 @@ export function GalleryManager() {
 
   const [isUploading, setIsUploading] = useState(false);
 
+  // Compress image before upload
+  const compressImage = (file: File, maxWidth = 1200, quality = 0.8): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let { width, height } = img;
+          
+          // Scale down if needed
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = reject;
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Show preview immediately
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setUploadPreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-
-    // Try to upload to Vercel Blob
     setIsUploading(true);
+    
     try {
-      const token = localStorage.getItem('token');
-      const base64Reader = new FileReader();
+      // Compress image first
+      const compressedData = await compressImage(file);
+      setUploadPreview(compressedData);
       
-      base64Reader.onloadend = async () => {
-        const base64Data = base64Reader.result as string;
-        
-        const response = await fetch(`${API_BASE}/upload`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { 'x-auth-token': token } : {})
-          },
-          body: JSON.stringify({
-            filename: file.name,
-            contentType: file.type,
-            data: base64Data
-          })
-        });
-
-        const data = await response.json();
-        
-        if (data.url) {
-          // Successfully uploaded - use the blob URL
-          setEditingArtwork(prev => prev ? { ...prev, imageUrl: data.url } : null);
-          setUploadPreview(data.url);
-        } else {
-          // Upload failed - keep base64 for preview but warn user
-          console.warn('Upload failed:', data.error);
-          alert('Bilduppladdning misslyckades. Använd en bildlänk (URL) istället.\n\nTips: Ladda upp bilden till din WordPress-sajt och kopiera länken.');
-        }
+      // Check compressed size
+      const base64Length = compressedData.length * 0.75; // Approximate bytes
+      if (base64Length > 2.5 * 1024 * 1024) { // 2.5MB
+        alert('Bilden är för stor även efter komprimering.\n\nTips: Ladda upp bilden till din WordPress-sajt och klistra in länken istället.');
         setIsUploading(false);
-      };
+        return;
+      }
+
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE}/upload`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'x-auth-token': token } : {})
+        },
+        body: JSON.stringify({
+          filename: file.name.replace(/\.[^/.]+$/, '.jpg'),
+          contentType: 'image/jpeg',
+          data: compressedData
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText);
+      }
+
+      const data = await response.json();
       
-      base64Reader.readAsDataURL(file);
-    } catch (err) {
+      if (data.url) {
+        setEditingArtwork(prev => prev ? { ...prev, imageUrl: data.url } : null);
+        setUploadPreview(data.url);
+      } else {
+        throw new Error(data.error || 'Upload failed');
+      }
+    } catch (err: any) {
       console.error('Upload error:', err);
+      alert(`Bilduppladdning misslyckades.\n\nTips: Ladda upp bilden till din WordPress-sajt och klistra in länken istället.\n\nFel: ${err.message || 'Okänt fel'}`);
+    } finally {
       setIsUploading(false);
-      alert('Bilduppladdning misslyckades. Använd en bildlänk (URL) istället.');
     }
   };
 

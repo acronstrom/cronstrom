@@ -350,7 +350,33 @@ app.delete('/api/exhibitions/:id', auth, async (req, res) => {
   }
 });
 
-// IMAGE UPLOAD ROUTE
+// IMAGE UPLOAD - Get upload URL for client-side upload
+app.post('/api/upload/request', auth, async (req, res) => {
+  try {
+    const { handleUpload } = require('@vercel/blob/client');
+    const { filename } = req.body;
+    
+    // Generate a client upload token
+    const response = await handleUpload({
+      body: req.body,
+      request: req,
+      onBeforeGenerateToken: async () => ({
+        allowedContentTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+        maximumSizeInBytes: 10 * 1024 * 1024, // 10MB
+      }),
+      onUploadCompleted: async ({ blob }) => {
+        console.log('Upload completed:', blob.url);
+      },
+    });
+    
+    res.json(response);
+  } catch (err) {
+    console.error('Upload request error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Direct server upload for smaller images
 app.post('/api/upload', auth, async (req, res) => {
   try {
     const { put } = require('@vercel/blob');
@@ -364,6 +390,14 @@ app.post('/api/upload', auth, async (req, res) => {
     const base64Data = data.replace(/^data:image\/\w+;base64,/, '');
     const buffer = Buffer.from(base64Data, 'base64');
     
+    // Check size - if too large, return error
+    if (buffer.length > 3 * 1024 * 1024) { // 3MB limit for API route
+      return res.status(413).json({ 
+        error: 'Image too large. Use an image URL instead.',
+        hint: 'Upload to WordPress and paste the URL'
+      });
+    }
+    
     // Upload to Vercel Blob
     const blob = await put(filename || `artwork-${Date.now()}.jpg`, buffer, {
       access: 'public',
@@ -373,7 +407,6 @@ app.post('/api/upload', auth, async (req, res) => {
     res.json({ url: blob.url, message: 'Image uploaded successfully' });
   } catch (err) {
     console.error('Upload error:', err);
-    // If blob storage isn't configured, return helpful error
     if (err.message.includes('BLOB')) {
       return res.status(503).json({ 
         error: 'Blob storage not configured. Use image URLs instead.',
