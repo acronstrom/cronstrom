@@ -183,7 +183,7 @@ export function Exhibitions() {
                       )}
                     </p>
                     {ex.description && (
-                      <p className="text-neutral-500 text-sm mt-2">{ex.description}</p>
+                      <p className="text-neutral-500 text-sm mt-2 whitespace-pre-line">{ex.description}</p>
                     )}
                   </div>
                 ))}
@@ -214,7 +214,7 @@ export function Exhibitions() {
                       )}
                     </p>
                     {ex.description && (
-                      <p className="text-neutral-500 text-sm mt-2">{ex.description}</p>
+                      <p className="text-neutral-500 text-sm mt-2 whitespace-pre-line">{ex.description}</p>
                     )}
                   </div>
                 ))}
@@ -251,6 +251,9 @@ export function Exhibitions() {
                       <span className="text-neutral-500"> · {ex.date || ex.year}</span>
                     )}
                   </p>
+                  {ex.description && (
+                    <p className="text-neutral-500 text-sm mt-2 whitespace-pre-line">{ex.description}</p>
+                  )}
                 </div>
               ))}
             </div>
