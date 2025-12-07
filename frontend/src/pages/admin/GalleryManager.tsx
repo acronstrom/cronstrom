@@ -32,6 +32,8 @@ export function GalleryManager() {
   const [useDatabase, setUseDatabase] = useState(false);
   const [isReorderMode, setIsReorderMode] = useState(false);
   const [hasOrderChanges, setHasOrderChanges] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const categories = ['Galleri', 'Glasfusing', 'Textilmåleri', 'Nobel'];
@@ -52,6 +54,46 @@ export function GalleryManager() {
     [newArtworks[index], newArtworks[index + 1]] = [newArtworks[index + 1], newArtworks[index]];
     setArtworks(newArtworks);
     setHasOrderChanges(true);
+  };
+
+  // Drag and drop handlers
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', index.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    const newArtworks = [...artworks];
+    const [draggedItem] = newArtworks.splice(draggedIndex, 1);
+    newArtworks.splice(dropIndex, 0, draggedItem);
+    
+    setArtworks(newArtworks);
+    setHasOrderChanges(true);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
   };
 
   // Save new order to database
@@ -505,11 +547,30 @@ export function GalleryManager() {
         <div className={isReorderMode ? "space-y-2" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"}>
           {artworks.map((artwork, index) => (
             isReorderMode ? (
-              /* Reorder Mode - List view */
+              /* Reorder Mode - List view with drag & drop */
               <div 
                 key={artwork.id} 
-                className="bg-white border border-neutral-200 flex items-center gap-4 p-3 hover:bg-neutral-50 transition-colors"
+                draggable
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, index)}
+                onDragEnd={handleDragEnd}
+                className={`bg-white border-2 flex items-center gap-4 p-3 transition-all cursor-grab active:cursor-grabbing ${
+                  draggedIndex === index 
+                    ? 'opacity-50 border-neutral-400' 
+                    : dragOverIndex === index 
+                    ? 'border-blue-500 bg-blue-50' 
+                    : 'border-neutral-200 hover:bg-neutral-50'
+                }`}
               >
+                <div 
+                  className="flex items-center justify-center p-2 hover:bg-neutral-100 rounded cursor-grab"
+                  title="Dra för att flytta"
+                >
+                  <GripVertical size={20} className="text-neutral-400" />
+                </div>
+
                 <div className="flex flex-col gap-1">
                   <button
                     onClick={() => moveUp(index)}
@@ -531,12 +592,12 @@ export function GalleryManager() {
                 
                 <span className="text-neutral-400 text-sm font-mono w-8">{index + 1}</span>
                 
-                <div className="w-16 h-16 bg-neutral-100 flex-shrink-0 overflow-hidden">
+                <div className="w-16 h-16 bg-neutral-100 flex-shrink-0 overflow-hidden rounded">
                   {artwork.imageUrl ? (
                     <img 
                       src={artwork.imageUrl} 
                       alt={artwork.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover pointer-events-none"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
@@ -549,8 +610,6 @@ export function GalleryManager() {
                   <h3 className="font-serif text-lg truncate">{artwork.title}</h3>
                   <p className="text-sm text-neutral-500">{artwork.category} • {artwork.year}</p>
                 </div>
-                
-                <GripVertical size={20} className="text-neutral-300 flex-shrink-0" />
               </div>
             ) : (
               /* Normal Mode - Grid view */
