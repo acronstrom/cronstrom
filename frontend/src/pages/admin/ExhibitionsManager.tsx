@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Plus, Edit2, Trash2, Calendar, MapPin, Award, Users, Star, X, Save, Loader2, RotateCcw, Check } from 'lucide-react';
 import { exhibitions as initialExhibitions } from '../../lib/data';
 import type { Exhibition } from '../../lib/types';
+import { API_BASE } from '../../lib/config';
 
 type CategoryFilter = 'all' | 'separat' | 'samling' | 'jury' | 'kommande' | 'commission' | 'represented';
 
@@ -26,8 +27,6 @@ const emptyForm: ExhibitionFormData = {
   is_current: false,
   is_upcoming: false
 };
-
-const API_BASE = '/api';
 
 export function ExhibitionsManager() {
   const [exhibitionList, setExhibitionList] = useState<Exhibition[]>([]);

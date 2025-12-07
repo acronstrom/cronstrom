@@ -1,7 +1,6 @@
 import axios from 'axios';
 import type { ContentItem, User, Artwork } from './types';
-
-const API_BASE = '/api';
+import { API_BASE } from './config';
 
 // Create axios instance with auth interceptor
 const api = axios.create({

@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { GraduationCap, Users, ExternalLink } from 'lucide-react';
-
-const API_BASE = '/api';
+import { API_BASE } from '../lib/config';
 
 interface EducationItem {
   id?: string;

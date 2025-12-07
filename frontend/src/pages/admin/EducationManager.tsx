@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Plus, Edit2, Trash2, GraduationCap, Calendar, X, Save, RefreshCcw, AlertTriangle, Users, ExternalLink, Database } from 'lucide-react';
-
-const API_BASE = '/api';
+import { API_BASE } from '../../lib/config';
 
 // Initial data to sync
 const initialEducationData = [
