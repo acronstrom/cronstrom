@@ -11,7 +11,10 @@ import {
   Save,
   Check,
   RotateCcw,
-  Loader2
+  Loader2,
+  GripVertical,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import { artworks as initialArtworks } from '../../lib/data';
 import type { Artwork } from '../../lib/types';
@@ -27,9 +30,65 @@ export function GalleryManager() {
   const [showSaveNotification, setShowSaveNotification] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [useDatabase, setUseDatabase] = useState(false);
+  const [isReorderMode, setIsReorderMode] = useState(false);
+  const [hasOrderChanges, setHasOrderChanges] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const categories = ['Galleri', 'Glasfusing', 'Textilmåleri', 'Nobel'];
+
+  // Move artwork up in order
+  const moveUp = (index: number) => {
+    if (index === 0) return;
+    const newArtworks = [...artworks];
+    [newArtworks[index - 1], newArtworks[index]] = [newArtworks[index], newArtworks[index - 1]];
+    setArtworks(newArtworks);
+    setHasOrderChanges(true);
+  };
+
+  // Move artwork down in order
+  const moveDown = (index: number) => {
+    if (index === artworks.length - 1) return;
+    const newArtworks = [...artworks];
+    [newArtworks[index], newArtworks[index + 1]] = [newArtworks[index + 1], newArtworks[index]];
+    setArtworks(newArtworks);
+    setHasOrderChanges(true);
+  };
+
+  // Save new order to database
+  const saveOrder = async () => {
+    if (!useDatabase) {
+      alert('Ordningen kan bara sparas när databasen är ansluten.');
+      return;
+    }
+    
+    try {
+      const token = localStorage.getItem('token');
+      const order = artworks.map((artwork, index) => ({
+        id: parseInt(artwork.id),
+        sort_order: index
+      }));
+      
+      const response = await fetch(`${API_BASE}/artworks/reorder`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'x-auth-token': token } : {})
+        },
+        body: JSON.stringify({ order })
+      });
+      
+      if (response.ok) {
+        setHasOrderChanges(false);
+        setShowSaveNotification(true);
+        setTimeout(() => setShowSaveNotification(false), 3000);
+      } else {
+        throw new Error('Failed to save order');
+      }
+    } catch (err) {
+      console.error('Error saving order:', err);
+      alert('Kunde inte spara ordningen. Försök igen.');
+    }
+  };
 
   // Load artworks from API or localStorage
   useEffect(() => {
@@ -375,13 +434,49 @@ export function GalleryManager() {
                 Synka till DB
               </button>
             )}
-            <button
-              onClick={openNewArtwork}
-              className="flex items-center gap-2 bg-black text-white px-6 py-3 text-sm uppercase tracking-wider hover:bg-neutral-800 transition-colors"
-            >
-              <Plus size={18} />
-              Lägg till verk
-            </button>
+            {isReorderMode ? (
+              <>
+                <button
+                  onClick={() => {
+                    setIsReorderMode(false);
+                    if (hasOrderChanges) {
+                      loadArtworks(); // Reload to discard changes
+                      setHasOrderChanges(false);
+                    }
+                  }}
+                  className="flex items-center gap-2 border border-neutral-200 px-4 py-3 text-sm uppercase tracking-wider hover:bg-neutral-100 transition-colors"
+                >
+                  <X size={18} />
+                  Avbryt
+                </button>
+                <button
+                  onClick={saveOrder}
+                  disabled={!hasOrderChanges}
+                  className="flex items-center gap-2 bg-green-600 text-white px-6 py-3 text-sm uppercase tracking-wider hover:bg-green-700 transition-colors disabled:opacity-50"
+                >
+                  <Save size={18} />
+                  Spara ordning
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => setIsReorderMode(true)}
+                  className="flex items-center gap-2 border border-neutral-200 px-4 py-3 text-sm uppercase tracking-wider hover:bg-neutral-100 transition-colors"
+                  title="Ändra ordning"
+                >
+                  <GripVertical size={18} />
+                  Ändra ordning
+                </button>
+                <button
+                  onClick={openNewArtwork}
+                  className="flex items-center gap-2 bg-black text-white px-6 py-3 text-sm uppercase tracking-wider hover:bg-neutral-800 transition-colors"
+                >
+                  <Plus size={18} />
+                  Lägg till verk
+                </button>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -396,57 +491,117 @@ export function GalleryManager() {
         </p>
       </div>
 
+      {/* Reorder Mode Banner */}
+      {isReorderMode && (
+        <div className="bg-amber-50 border-b border-amber-200 px-6 py-3">
+          <p className="container mx-auto text-sm text-amber-800">
+            <strong>Sorteringsläge:</strong> Använd pilarna för att flytta verk upp eller ner. Klicka "Spara ordning" när du är klar.
+          </p>
+        </div>
+      )}
+
       {/* Gallery Grid */}
       <main className="container mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {artworks.map((artwork) => (
-            <div key={artwork.id} className="bg-white border border-neutral-100 overflow-hidden group">
-              <div className="aspect-[4/5] bg-neutral-100 relative">
-                {artwork.imageUrl ? (
-                  <img 
-                    src={artwork.imageUrl} 
-                    alt={artwork.title}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <ImageIcon size={48} className="text-neutral-300" />
+        <div className={isReorderMode ? "space-y-2" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"}>
+          {artworks.map((artwork, index) => (
+            isReorderMode ? (
+              /* Reorder Mode - List view */
+              <div 
+                key={artwork.id} 
+                className="bg-white border border-neutral-200 flex items-center gap-4 p-3 hover:bg-neutral-50 transition-colors"
+              >
+                <div className="flex flex-col gap-1">
+                  <button
+                    onClick={() => moveUp(index)}
+                    disabled={index === 0}
+                    className="p-1.5 hover:bg-neutral-200 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    title="Flytta upp"
+                  >
+                    <ArrowUp size={16} />
+                  </button>
+                  <button
+                    onClick={() => moveDown(index)}
+                    disabled={index === artworks.length - 1}
+                    className="p-1.5 hover:bg-neutral-200 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    title="Flytta ner"
+                  >
+                    <ArrowDown size={16} />
+                  </button>
+                </div>
+                
+                <span className="text-neutral-400 text-sm font-mono w-8">{index + 1}</span>
+                
+                <div className="w-16 h-16 bg-neutral-100 flex-shrink-0 overflow-hidden">
+                  {artwork.imageUrl ? (
+                    <img 
+                      src={artwork.imageUrl} 
+                      alt={artwork.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <ImageIcon size={24} className="text-neutral-300" />
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-serif text-lg truncate">{artwork.title}</h3>
+                  <p className="text-sm text-neutral-500">{artwork.category} • {artwork.year}</p>
+                </div>
+                
+                <GripVertical size={20} className="text-neutral-300 flex-shrink-0" />
+              </div>
+            ) : (
+              /* Normal Mode - Grid view */
+              <div key={artwork.id} className="bg-white border border-neutral-100 overflow-hidden group">
+                <div className="aspect-[4/5] bg-neutral-100 relative">
+                  {artwork.imageUrl ? (
+                    <img 
+                      src={artwork.imageUrl} 
+                      alt={artwork.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <ImageIcon size={48} className="text-neutral-300" />
+                    </div>
+                  )}
+                  
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                    <button
+                      onClick={() => openEditArtwork(artwork)}
+                      className="p-3 bg-white rounded-full hover:bg-neutral-100 transition-colors"
+                    >
+                      <Pencil size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(artwork.id)}
+                      className="p-3 bg-white rounded-full hover:bg-red-50 text-red-500 transition-colors"
+                    >
+                      <Trash2 size={18} />
+                    </button>
                   </div>
-                )}
-                
-                {/* Hover overlay */}
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                  <button
-                    onClick={() => openEditArtwork(artwork)}
-                    className="p-3 bg-white rounded-full hover:bg-neutral-100 transition-colors"
-                  >
-                    <Pencil size={18} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(artwork.id)}
-                    className="p-3 bg-white rounded-full hover:bg-red-50 text-red-500 transition-colors"
-                  >
-                    <Trash2 size={18} />
-                  </button>
+                  
+                  {/* Status badge */}
+                  <div className={`absolute top-3 right-3 px-2 py-1 text-xs uppercase tracking-wider ${
+                    artwork.status === 'available' 
+                      ? 'bg-green-500 text-white' 
+                      : artwork.status === 'reserved'
+                      ? 'bg-yellow-500 text-white'
+                      : 'bg-red-500 text-white'
+                  }`}>
+                    {artwork.status === 'available' ? 'Tillgänglig' : artwork.status === 'reserved' ? 'Reserverad' : 'Såld'}
+                  </div>
                 </div>
                 
-                {/* Status badge */}
-                <div className={`absolute top-3 right-3 px-2 py-1 text-xs uppercase tracking-wider ${
-                  artwork.status === 'available' 
-                    ? 'bg-green-500 text-white' 
-                    : artwork.status === 'reserved'
-                    ? 'bg-yellow-500 text-white'
-                    : 'bg-red-500 text-white'
-                }`}>
-                  {artwork.status === 'available' ? 'Tillgänglig' : artwork.status === 'reserved' ? 'Reserverad' : 'Såld'}
+                <div className="p-4">
+                  <h3 className="font-serif text-lg mb-1">{artwork.title}</h3>
+                  <p className="text-sm text-neutral-500">{artwork.category} • {artwork.year}</p>
                 </div>
               </div>
-              
-              <div className="p-4">
-                <h3 className="font-serif text-lg mb-1">{artwork.title}</h3>
-                <p className="text-sm text-neutral-500">{artwork.category} • {artwork.year}</p>
-              </div>
-            </div>
+            )
           ))}
         </div>
       </main>

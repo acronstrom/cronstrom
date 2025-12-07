@@ -84,10 +84,18 @@ async function initDB() {
         category VARCHAR(255),
         description TEXT,
         status VARCHAR(50) DEFAULT 'available',
+        sort_order INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
+    
+    // Add sort_order column if it doesn't exist (for existing tables)
+    try {
+      await sql`ALTER TABLE artworks ADD COLUMN IF NOT EXISTS sort_order INTEGER DEFAULT 0`;
+    } catch (e) {
+      // Column might already exist
+    }
 
     await sql`
       CREATE TABLE IF NOT EXISTS exhibitions (
@@ -240,7 +248,7 @@ app.get('/api/artworks', async (req, res) => {
   
   try {
     await initDB();
-    const { rows } = await sql`SELECT * FROM artworks ORDER BY created_at DESC`;
+    const { rows } = await sql`SELECT * FROM artworks ORDER BY sort_order ASC, created_at DESC`;
     res.json({ artworks: rows, database: true });
   } catch (err) {
     console.error('Get artworks error:', err);
@@ -305,6 +313,29 @@ app.delete('/api/artworks/:id', auth, async (req, res) => {
     res.json({ message: 'Artwork deleted' });
   } catch (err) {
     console.error('Delete artwork error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Reorder artworks
+app.put('/api/artworks/reorder', auth, async (req, res) => {
+  if (!dbConnected || !sql) {
+    return res.status(503).json({ error: 'Database not connected' });
+  }
+  
+  const { order } = req.body; // Array of { id, sort_order }
+  
+  if (!order || !Array.isArray(order)) {
+    return res.status(400).json({ error: 'Order array is required' });
+  }
+  
+  try {
+    for (const item of order) {
+      await sql`UPDATE artworks SET sort_order = ${item.sort_order} WHERE id = ${item.id}`;
+    }
+    res.json({ message: 'Order updated', database: true });
+  } catch (err) {
+    console.error('Reorder artworks error:', err);
     res.status(500).json({ error: err.message });
   }
 });
