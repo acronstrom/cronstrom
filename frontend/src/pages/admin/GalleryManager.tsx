@@ -15,10 +15,9 @@ import {
 } from 'lucide-react';
 import { artworks as initialArtworks } from '../../lib/data';
 import type { Artwork } from '../../lib/types';
+import { API_BASE } from '../../lib/config';
 
 type EditingArtwork = Partial<Artwork> & { isNew?: boolean };
-
-const API_BASE = '/api';
 
 export function GalleryManager() {
   const [artworks, setArtworks] = useState<Artwork[]>([]);
