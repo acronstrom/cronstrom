@@ -277,6 +277,29 @@ app.post('/api/artworks', auth, async (req, res) => {
   }
 });
 
+// Reorder artworks - MUST be before /:id route
+app.put('/api/artworks/reorder', auth, async (req, res) => {
+  if (!dbConnected || !sql) {
+    return res.status(503).json({ error: 'Database not connected' });
+  }
+  
+  const { order } = req.body; // Array of { id, sort_order }
+  
+  if (!order || !Array.isArray(order)) {
+    return res.status(400).json({ error: 'Order array is required' });
+  }
+  
+  try {
+    for (const item of order) {
+      await sql`UPDATE artworks SET sort_order = ${item.sort_order} WHERE id = ${item.id}`;
+    }
+    res.json({ message: 'Order updated', database: true });
+  } catch (err) {
+    console.error('Reorder artworks error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.put('/api/artworks/:id', auth, async (req, res) => {
   if (!dbConnected || !sql) {
     return res.status(503).json({ error: 'Database not connected' });
@@ -313,29 +336,6 @@ app.delete('/api/artworks/:id', auth, async (req, res) => {
     res.json({ message: 'Artwork deleted' });
   } catch (err) {
     console.error('Delete artwork error:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Reorder artworks
-app.put('/api/artworks/reorder', auth, async (req, res) => {
-  if (!dbConnected || !sql) {
-    return res.status(503).json({ error: 'Database not connected' });
-  }
-  
-  const { order } = req.body; // Array of { id, sort_order }
-  
-  if (!order || !Array.isArray(order)) {
-    return res.status(400).json({ error: 'Order array is required' });
-  }
-  
-  try {
-    for (const item of order) {
-      await sql`UPDATE artworks SET sort_order = ${item.sort_order} WHERE id = ${item.id}`;
-    }
-    res.json({ message: 'Order updated', database: true });
-  } catch (err) {
-    console.error('Reorder artworks error:', err);
     res.status(500).json({ error: err.message });
   }
 });
