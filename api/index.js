@@ -115,6 +115,17 @@ async function initDB() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
+    
+    // Create settings table
+    await sql`
+      CREATE TABLE IF NOT EXISTS settings (
+        id SERIAL PRIMARY KEY,
+        key VARCHAR(255) UNIQUE NOT NULL,
+        value TEXT,
+        is_public BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
 
     console.log('Database tables initialized');
     return true;
@@ -519,55 +530,107 @@ app.post('/api/upload', auth, async (req, res) => {
   }
 });
 
-// CONTACT FORM EMAIL ROUTE
-app.post('/api/contact', async (req, res) => {
-  const { name, email, message } = req.body;
+// SETTINGS ROUTES
+app.get('/api/settings', auth, async (req, res) => {
+  if (!dbConnected || !sql) {
+    return res.json({ settings: {}, database: false });
+  }
   
-  if (!name || !email || !message) {
-    return res.status(400).json({ error: 'Name, email and message are required' });
-  }
-
-  // Check if Resend API key is configured
-  if (!process.env.RESEND_API_KEY) {
-    console.error('RESEND_API_KEY not configured');
-    return res.status(503).json({ 
-      error: 'Email service not configured',
-      hint: 'Add RESEND_API_KEY in Vercel environment variables'
-    });
-  }
-
   try {
-    const { Resend } = require('resend');
-    const resend = new Resend(process.env.RESEND_API_KEY);
-
-    const { data, error } = await resend.emails.send({
-      from: 'Kontaktformulär <onboarding@resend.dev>',
-      to: process.env.CONTACT_EMAIL || 'lena@cronstrom.net',
-      replyTo: email,
-      subject: `Nytt meddelande från ${name}`,
-      html: `
-        <h2>Nytt meddelande från kontaktformuläret</h2>
-        <p><strong>Från:</strong> ${name}</p>
-        <p><strong>E-post:</strong> ${email}</p>
-        <hr>
-        <p><strong>Meddelande:</strong></p>
-        <p>${message.replace(/\n/g, '<br>')}</p>
-        <hr>
-        <p style="color: #666; font-size: 12px;">
-          Skickat via kontaktformuläret på lena.cronstrom.net
-        </p>
-      `
+    await initDB();
+    const { rows } = await sql`SELECT * FROM settings`;
+    const settings = {};
+    rows.forEach(row => {
+      settings[row.key] = row.value;
     });
-
-    if (error) {
-      console.error('Resend error:', error);
-      return res.status(500).json({ error: 'Failed to send email', details: error.message });
-    }
-
-    res.json({ success: true, message: 'Email sent successfully', id: data?.id });
+    res.json({ settings, database: true });
   } catch (err) {
-    console.error('Email error:', err);
-    res.status(500).json({ error: 'Failed to send email', details: err.message });
+    console.error('Get settings error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/settings/public', async (req, res) => {
+  if (!dbConnected || !sql) {
+    return res.json({ settings: {}, database: false });
+  }
+  
+  try {
+    await initDB();
+    const { rows } = await sql`SELECT * FROM settings WHERE is_public = true`;
+    const settings = {};
+    rows.forEach(row => {
+      settings[row.key] = row.value;
+    });
+    res.json({ settings, database: true });
+  } catch (err) {
+    console.error('Get public settings error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/settings/:key', auth, async (req, res) => {
+  if (!dbConnected || !sql) {
+    return res.status(503).json({ error: 'Database not connected' });
+  }
+  
+  const { key } = req.params;
+  const { value, is_public } = req.body;
+  
+  try {
+    await initDB();
+    // Upsert - insert or update
+    const { rows } = await sql`
+      INSERT INTO settings (key, value, is_public)
+      VALUES (${key}, ${value}, ${is_public || false})
+      ON CONFLICT (key) 
+      DO UPDATE SET value = ${value}, is_public = ${is_public || false}
+      RETURNING *
+    `;
+    res.json({ setting: rows[0], message: 'Setting saved' });
+  } catch (err) {
+    console.error('Update setting error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/settings', auth, async (req, res) => {
+  if (!dbConnected || !sql) {
+    return res.status(503).json({ error: 'Database not connected' });
+  }
+  
+  const { settings } = req.body;
+  
+  try {
+    await initDB();
+    for (const [key, value] of Object.entries(settings)) {
+      await sql`
+        INSERT INTO settings (key, value, is_public)
+        VALUES (${key}, ${String(value)}, false)
+        ON CONFLICT (key) 
+        DO UPDATE SET value = ${String(value)}
+      `;
+    }
+    res.json({ message: 'Settings saved', database: true });
+  } catch (err) {
+    console.error('Bulk update settings error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/settings/:key', auth, async (req, res) => {
+  if (!dbConnected || !sql) {
+    return res.status(503).json({ error: 'Database not connected' });
+  }
+  
+  const { key } = req.params;
+  
+  try {
+    await sql`DELETE FROM settings WHERE key = ${key}`;
+    res.json({ message: 'Setting deleted' });
+  } catch (err) {
+    console.error('Delete setting error:', err);
+    res.status(500).json({ error: err.message });
   }
 });
 
