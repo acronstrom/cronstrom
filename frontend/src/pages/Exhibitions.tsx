@@ -182,6 +182,9 @@ export function Exhibitions() {
                         <span className="text-neutral-500"> · {ex.date || ex.year}</span>
                       )}
                     </p>
+                    {ex.description && (
+                      <p className="text-neutral-500 text-sm mt-2">{ex.description}</p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -210,6 +213,9 @@ export function Exhibitions() {
                         <span className="text-neutral-500"> · {ex.date || ex.year}</span>
                       )}
                     </p>
+                    {ex.description && (
+                      <p className="text-neutral-500 text-sm mt-2">{ex.description}</p>
+                    )}
                   </div>
                 ))}
               </div>
