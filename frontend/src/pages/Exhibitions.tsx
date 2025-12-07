@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { exhibitions as initialExhibitions } from '../lib/data';
 import type { Exhibition } from '../lib/types';
+import { API_BASE } from '../lib/config';
 
 function ExhibitionItem({ exhibition }: { exhibition: Exhibition }) {
   const displayTitle = exhibition.title
@@ -85,7 +86,7 @@ export function Exhibitions() {
   const loadExhibitions = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/exhibitions');
+      const response = await fetch(`${API_BASE}/exhibitions`);
       const data = await response.json();
       
       if (data.exhibitions && data.exhibitions.length > 0) {

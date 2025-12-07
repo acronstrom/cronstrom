@@ -3,6 +3,7 @@ import { artworks as initialArtworks } from '../lib/data';
 import { SectionHeader, ArtworkGrid } from '../components/shared/SharedComponents';
 import { ArtworkModal } from '../components/shared/ArtworkModal';
 import type { Artwork } from '../lib/types';
+import { API_BASE } from '../lib/config';
 
 export function Gallery() {
   const [artworks, setArtworks] = useState<Artwork[]>([]);
@@ -17,7 +18,7 @@ export function Gallery() {
     setIsLoading(true);
     try {
       // Try to load from API first
-      const response = await fetch('/api/artworks');
+      const response = await fetch(`${API_BASE}/artworks`);
       const data = await response.json();
       
       if (data.artworks && data.artworks.length > 0) {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { exhibitions as initialExhibitions } from '../../lib/data';
 import type { Exhibition } from '../../lib/types';
+import { API_BASE } from '../../lib/config';
 
 export function UpcomingExhibitions() {
   const [exhibitions, setExhibitions] = useState<Exhibition[]>([]);
@@ -13,7 +14,7 @@ export function UpcomingExhibitions() {
 
   const loadExhibitions = async () => {
     try {
-      const response = await fetch('/api/exhibitions');
+      const response = await fetch(`${API_BASE}/exhibitions`);
       const data = await response.json();
       
       if (data.exhibitions && data.exhibitions.length > 0) {
