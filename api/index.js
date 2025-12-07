@@ -50,9 +50,9 @@ const auth = (req, res, next) => {
   }
 };
 
-// Demo mode credentials
-const DEMO_EMAIL = 'admin@cronstrom.net';
-const DEMO_PASSWORD = 'admin123';
+// Admin credentials from environment variables (fallback to demo for development)
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@cronstrom.net';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 
 // Initialize database tables
 async function initDB() {
@@ -155,13 +155,13 @@ app.get('/api/health', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
 
-  // Demo mode login (works without database)
-  if (email === DEMO_EMAIL && password === DEMO_PASSWORD) {
+  // Admin login (credentials from environment variables)
+  if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
     const payload = {
       user: {
-        id: 'demo-admin-id',
+        id: 'admin-id',
         name: 'Lena Cronström',
-        email: DEMO_EMAIL,
+        email: ADMIN_EMAIL,
         role: 'admin',
       },
     };
@@ -200,12 +200,12 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 app.get('/api/auth/profile', auth, async (req, res) => {
-  if (req.user.id === 'demo-admin-id') {
+  if (req.user.id === 'admin-id') {
     return res.json({
       user: {
-        id: 'demo-admin-id',
+        id: 'admin-id',
         name: 'Lena Cronström',
-        email: DEMO_EMAIL,
+        email: ADMIN_EMAIL,
         role: 'admin',
       }
     });
