@@ -1,5 +1,5 @@
-import { useEffect, useCallback } from 'react';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useEffect, useCallback, useState } from 'react';
+import { X, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
 import type { Artwork } from '../../lib/types';
 
 interface ArtworkModalProps {
@@ -19,6 +19,7 @@ export function ArtworkModal({
   hasPrevious = false, 
   hasNext = false 
 }: ArtworkModalProps) {
+  const [showDetails, setShowDetails] = useState(false);
   
   // Keyboard navigation
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -77,7 +78,7 @@ export function ArtworkModal({
         </button>
       )}
       
-      {/* Mobile Layout - Full screen image with title overlay */}
+      {/* Mobile Layout - Full screen image with expandable details */}
       <div className="md:hidden w-full h-full flex flex-col">
         {/* Image - takes most of the screen */}
         <div className="flex-1 flex items-center justify-center p-4 pt-16">
@@ -88,9 +89,38 @@ export function ArtworkModal({
           />
         </div>
         
-        {/* Title only at bottom */}
-        <div className="bg-black/80 px-6 py-4 text-center">
-          <h2 className="text-xl font-serif text-white">{artwork.title}</h2>
+        {/* Expandable info panel at bottom */}
+        <div className="bg-black/90 text-white">
+          {/* Title bar with toggle */}
+          <button 
+            onClick={() => setShowDetails(!showDetails)}
+            className="w-full px-6 py-4 flex items-center justify-between"
+          >
+            <h2 className="text-xl font-serif">{artwork.title}</h2>
+            <span className="text-white/60 flex items-center gap-1 text-xs">
+              {showDetails ? (
+                <>Dölj <ChevronDown size={16} /></>
+              ) : (
+                <>Info <ChevronUp size={16} /></>
+              )}
+            </span>
+          </button>
+          
+          {/* Expandable details */}
+          {showDetails && (
+            <div className="px-6 pb-6 pt-2 border-t border-white/10 space-y-4 animate-in slide-in-from-bottom-2 duration-200">
+              <div className="flex justify-between">
+                <div>
+                  <h3 className="text-xs uppercase tracking-wider text-white/50 mb-1">Teknik</h3>
+                  <p className="text-white/90">{artwork.medium}</p>
+                </div>
+                <div className="text-right">
+                  <h3 className="text-xs uppercase tracking-wider text-white/50 mb-1">Mått</h3>
+                  <p className="text-white/90">{artwork.dimensions}</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
