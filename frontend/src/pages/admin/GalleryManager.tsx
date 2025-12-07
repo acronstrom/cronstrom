@@ -100,8 +100,8 @@ export function GalleryManager() {
 
   const [isUploading, setIsUploading] = useState(false);
 
-  // Compress image before upload
-  const compressImage = (file: File, maxWidth = 1200, quality = 0.8): Promise<string> => {
+  // Compress image before upload - aggressive compression for Vercel's 4.5MB limit
+  const compressImage = (file: File, maxWidth = 800, quality = 0.6): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -110,7 +110,7 @@ export function GalleryManager() {
           const canvas = document.createElement('canvas');
           let { width, height } = img;
           
-          // Scale down if needed
+          // Scale down aggressively
           if (width > maxWidth) {
             height = (height * maxWidth) / width;
             width = maxWidth;
@@ -136,53 +136,72 @@ export function GalleryManager() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Check original file size - if over 5MB, recommend URL instead
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Bilden är för stor (över 5MB).\n\nAnvänd en bildlänk istället:\n1. Ladda upp bilden till WordPress\n2. Kopiera bildlänken\n3. Klistra in i "Bildlänk (URL)" fältet nedan');
+      return;
+    }
+
     setIsUploading(true);
     
     try {
-      // Compress image first
-      const compressedData = await compressImage(file);
+      // Compress image aggressively
+      const compressedData = await compressImage(file, 800, 0.6);
       setUploadPreview(compressedData);
       
-      // Check compressed size
-      const base64Length = compressedData.length * 0.75; // Approximate bytes
-      if (base64Length > 2.5 * 1024 * 1024) { // 2.5MB
-        alert('Bilden är för stor även efter komprimering.\n\nTips: Ladda upp bilden till din WordPress-sajt och klistra in länken istället.');
-        setIsUploading(false);
-        return;
-      }
-
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/upload`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'x-auth-token': token } : {})
-        },
-        body: JSON.stringify({
-          filename: file.name.replace(/\.[^/.]+$/, '.jpg'),
-          contentType: 'image/jpeg',
-          data: compressedData
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText);
-      }
-
-      const data = await response.json();
-      
-      if (data.url) {
-        setEditingArtwork(prev => prev ? { ...prev, imageUrl: data.url } : null);
-        setUploadPreview(data.url);
+      // Check compressed size - must be under 2MB for safe upload
+      const base64Length = compressedData.length * 0.75;
+      if (base64Length > 2 * 1024 * 1024) {
+        // Try even more compression
+        const moreCompressed = await compressImage(file, 600, 0.4);
+        const smallerSize = moreCompressed.length * 0.75;
+        
+        if (smallerSize > 2 * 1024 * 1024) {
+          alert('Bilden är för stor även efter komprimering.\n\nAnvänd en bildlänk istället:\n1. Ladda upp bilden till WordPress\n2. Kopiera bildlänken\n3. Klistra in i "Bildlänk (URL)" fältet');
+          setIsUploading(false);
+          return;
+        }
+        
+        // Use more compressed version
+        setUploadPreview(moreCompressed);
+        await uploadToServer(moreCompressed, file.name);
       } else {
-        throw new Error(data.error || 'Upload failed');
+        await uploadToServer(compressedData, file.name);
       }
     } catch (err: any) {
       console.error('Upload error:', err);
-      alert(`Bilduppladdning misslyckades.\n\nTips: Ladda upp bilden till din WordPress-sajt och klistra in länken istället.\n\nFel: ${err.message || 'Okänt fel'}`);
+      alert('Bilduppladdning misslyckades.\n\nAnvänd en bildlänk istället:\n1. Ladda upp bilden till WordPress\n2. Kopiera bildlänken\n3. Klistra in i "Bildlänk (URL)" fältet');
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const uploadToServer = async (imageData: string, filename: string) => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE}/upload`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'x-auth-token': token } : {})
+      },
+      body: JSON.stringify({
+        filename: filename.replace(/\.[^/.]+$/, '.jpg'),
+        contentType: 'image/jpeg',
+        data: imageData
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Upload failed');
+    }
+
+    const data = await response.json();
+    
+    if (data.url) {
+      setEditingArtwork(prev => prev ? { ...prev, imageUrl: data.url } : null);
+      setUploadPreview(data.url);
+    } else {
+      throw new Error(data.error || 'Upload failed');
     }
   };
 
