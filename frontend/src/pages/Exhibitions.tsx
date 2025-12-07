@@ -112,17 +112,36 @@ export function Exhibitions() {
     }
   };
 
-  // Filter exhibitions by flags or category
-  const currentExhibitions = exhibitions.filter(e => (e as any).is_current === true);
-  const upcomingExhibitions = exhibitions.filter(e => 
-    (e as any).is_upcoming === true && 
-    e.category !== 'commission' && 
-    e.category !== 'represented'
-  );
-  const representerad = exhibitions.filter(e => e.category === 'commission' || e.category === 'represented');
-  const separat = exhibitions.filter(e => e.category === 'separat');
-  const samling = exhibitions.filter(e => e.category === 'samling');
-  const jury = exhibitions.filter(e => e.category === 'jury');
+  // Sort function - latest first (descending by year/date)
+  const sortByDateDesc = (a: Exhibition, b: Exhibition) => {
+    const yearA = parseInt(a.date || a.year || '0');
+    const yearB = parseInt(b.date || b.year || '0');
+    return yearB - yearA;
+  };
+
+  // Filter and sort exhibitions by flags or category
+  const currentExhibitions = exhibitions
+    .filter(e => (e as any).is_current === true)
+    .sort(sortByDateDesc);
+  const upcomingExhibitions = exhibitions
+    .filter(e => 
+      (e as any).is_upcoming === true && 
+      e.category !== 'commission' && 
+      e.category !== 'represented'
+    )
+    .sort(sortByDateDesc);
+  const representerad = exhibitions
+    .filter(e => e.category === 'commission' || e.category === 'represented')
+    .sort(sortByDateDesc);
+  const separat = exhibitions
+    .filter(e => e.category === 'separat')
+    .sort(sortByDateDesc);
+  const samling = exhibitions
+    .filter(e => e.category === 'samling')
+    .sort(sortByDateDesc);
+  const jury = exhibitions
+    .filter(e => e.category === 'jury')
+    .sort(sortByDateDesc);
 
   if (isLoading) {
     return (
