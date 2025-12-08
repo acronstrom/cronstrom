@@ -5,7 +5,7 @@ import { exhibitions as initialExhibitions } from '../../lib/data';
 import type { Exhibition } from '../../lib/types';
 import { API_BASE } from '../../lib/config';
 
-type CategoryFilter = 'all' | 'separat' | 'samling' | 'jury' | 'kommande' | 'commission' | 'represented';
+type CategoryFilter = 'all' | 'separat' | 'samling' | 'jury' | 'current' | 'upcoming' | 'commission' | 'represented';
 
 interface ExhibitionFormData {
   id?: string;
@@ -14,8 +14,8 @@ interface ExhibitionFormData {
   date: string;
   category: string;
   description: string;
-  is_current: boolean;
-  is_upcoming: boolean;
+  start_date: string;
+  end_date: string;
 }
 
 const emptyForm: ExhibitionFormData = {
@@ -24,8 +24,8 @@ const emptyForm: ExhibitionFormData = {
   date: new Date().getFullYear().toString(),
   category: 'separat',
   description: '',
-  is_current: false,
-  is_upcoming: false
+  start_date: '',
+  end_date: ''
 };
 
 export function ExhibitionsManager() {
@@ -62,7 +62,9 @@ export function ExhibitionsManager() {
           category: e.category,
           description: e.description,
           is_current: e.is_current,
-          is_upcoming: e.is_upcoming
+          is_upcoming: e.is_upcoming,
+          start_date: e.start_date ? e.start_date.split('T')[0] : '',
+          end_date: e.end_date ? e.end_date.split('T')[0] : ''
         }));
         setExhibitionList(mapped);
         setUseDatabase(true);
@@ -84,14 +86,19 @@ export function ExhibitionsManager() {
     setTimeout(() => setShowNotification(false), 3000);
   };
 
-  const filteredExhibitions = filter === 'all' 
-    ? exhibitionList 
-    : exhibitionList.filter(e => e.category === filter);
+  const filteredExhibitions = (() => {
+    if (filter === 'all') return exhibitionList;
+    if (filter === 'current') return exhibitionList.filter(e => (e as any).is_current);
+    if (filter === 'upcoming') return exhibitionList.filter(e => (e as any).is_upcoming && !(e as any).is_current);
+    if (filter === 'commission') return exhibitionList.filter(e => e.category === 'commission' || e.category === 'represented');
+    return exhibitionList.filter(e => e.category === filter);
+  })();
 
   const separatCount = exhibitionList.filter(e => e.category === 'separat').length;
   const samlingCount = exhibitionList.filter(e => e.category === 'samling').length;
   const juryCount = exhibitionList.filter(e => e.category === 'jury').length;
-  const kommandCount = exhibitionList.filter(e => e.category === 'kommande').length;
+  const currentCount = exhibitionList.filter(e => (e as any).is_current).length;
+  const upcomingCount = exhibitionList.filter(e => (e as any).is_upcoming && !(e as any).is_current).length;
   const uppdragCount = exhibitionList.filter(e => e.category === 'commission' || e.category === 'represented').length;
 
   const getCategoryBadge = (category?: string) => {
@@ -102,14 +109,18 @@ export function ExhibitionsManager() {
         return <span className="px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-700">Samlingsutställning</span>;
       case 'jury':
         return <span className="px-2 py-0.5 rounded text-xs bg-amber-100 text-amber-700">Jurybedömd</span>;
-      case 'kommande':
-        return <span className="px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">Kommande</span>;
       case 'commission':
       case 'represented':
         return <span className="px-2 py-0.5 rounded text-xs bg-teal-100 text-teal-700">Uppdrag/Representerad</span>;
       default:
         return null;
     }
+  };
+
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('sv-SE');
   };
 
   const openAddModal = () => {
@@ -126,8 +137,8 @@ export function ExhibitionsManager() {
       date: exhibition.date || exhibition.year || '',
       category: exhibition.category || 'separat',
       description: exhibition.description || '',
-      is_current: (exhibition as any).is_current || false,
-      is_upcoming: (exhibition as any).is_upcoming || false
+      start_date: (exhibition as any).start_date || '',
+      end_date: (exhibition as any).end_date || ''
     };
     setFormData(data);
     setEditingExhibition(data);
@@ -330,7 +341,7 @@ export function ExhibitionsManager() {
       {/* Content */}
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-7 gap-4 mb-8">
           <button 
             onClick={() => setFilter('all')}
             className={`p-4 rounded-lg text-left transition-colors ${filter === 'all' ? 'bg-neutral-900 text-white' : 'bg-white hover:bg-neutral-50'}`}
@@ -339,12 +350,22 @@ export function ExhibitionsManager() {
             <p className="text-sm opacity-70">Totalt</p>
           </button>
           <button 
-            onClick={() => setFilter('kommande')}
-            className={`p-4 rounded-lg text-left transition-colors ${filter === 'kommande' ? 'bg-green-600 text-white' : 'bg-white hover:bg-neutral-50'}`}
+            onClick={() => setFilter('current')}
+            className={`p-4 rounded-lg text-left transition-colors ${filter === 'current' ? 'bg-red-600 text-white' : 'bg-white hover:bg-neutral-50'}`}
           >
             <div className="flex items-center gap-2 mb-1">
               <Calendar className="w-4 h-4" />
-              <span className="text-2xl font-serif">{kommandCount}</span>
+              <span className="text-2xl font-serif">{currentCount}</span>
+            </div>
+            <p className="text-sm opacity-70">Pågående</p>
+          </button>
+          <button 
+            onClick={() => setFilter('upcoming')}
+            className={`p-4 rounded-lg text-left transition-colors ${filter === 'upcoming' ? 'bg-orange-600 text-white' : 'bg-white hover:bg-neutral-50'}`}
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <Calendar className="w-4 h-4" />
+              <span className="text-2xl font-serif">{upcomingCount}</span>
             </div>
             <p className="text-sm opacity-70">Kommande</p>
           </button>
@@ -407,10 +428,15 @@ export function ExhibitionsManager() {
                       <h3 className="font-medium text-lg">{exhibition.title || '—'}</h3>
                       {getCategoryBadge(exhibition.category)}
                       {(exhibition as any).is_current && (
-                        <span className="px-2 py-0.5 rounded text-xs bg-red-100 text-red-700">Pågående</span>
+                        <span className="px-2 py-0.5 rounded text-xs bg-red-100 text-red-700">🔴 Pågående</span>
                       )}
-                      {(exhibition as any).is_upcoming && (
-                        <span className="px-2 py-0.5 rounded text-xs bg-orange-100 text-orange-700">Kommande</span>
+                      {(exhibition as any).is_upcoming && !(exhibition as any).is_current && (
+                        <span className="px-2 py-0.5 rounded text-xs bg-orange-100 text-orange-700">🟠 Kommande</span>
+                      )}
+                      {((exhibition as any).start_date || (exhibition as any).end_date) && (
+                        <span className="text-xs text-neutral-500">
+                          {formatDate((exhibition as any).start_date)} – {formatDate((exhibition as any).end_date)}
+                        </span>
                       )}
                     </div>
                     <div className="flex flex-wrap gap-4 text-sm text-neutral-600">
@@ -517,7 +543,6 @@ export function ExhibitionsManager() {
                   className="w-full px-4 py-2 border border-neutral-300 rounded focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
                   required
                 >
-                  <option value="kommande">Kommande</option>
                   <option value="separat">Separatutställning</option>
                   <option value="samling">Samlingsutställning</option>
                   <option value="jury">Jurybedömd</option>
@@ -538,25 +563,36 @@ export function ExhibitionsManager() {
                 />
               </div>
 
-              <div className="flex gap-6">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.is_current}
-                    onChange={e => setFormData(prev => ({ ...prev, is_current: e.target.checked }))}
-                    className="rounded border-neutral-300"
-                  />
-                  <span className="text-sm">Pågående nu</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.is_upcoming}
-                    onChange={e => setFormData(prev => ({ ...prev, is_upcoming: e.target.checked }))}
-                    className="rounded border-neutral-300"
-                  />
-                  <span className="text-sm">Kommande</span>
-                </label>
+              {/* Date range for current/upcoming status */}
+              <div className="bg-neutral-50 p-4 rounded-lg space-y-3">
+                <p className="text-sm font-medium text-neutral-700">
+                  Visningsperiod <span className="text-neutral-400 font-normal">(för Pågående/Kommande status)</span>
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs text-neutral-500 mb-1">Startdatum</label>
+                    <input
+                      type="date"
+                      value={formData.start_date}
+                      onChange={e => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
+                      className="w-full px-3 py-2 border border-neutral-300 rounded focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-neutral-500 mb-1">Slutdatum</label>
+                    <input
+                      type="date"
+                      value={formData.end_date}
+                      onChange={e => setFormData(prev => ({ ...prev, end_date: e.target.value }))}
+                      className="w-full px-3 py-2 border border-neutral-300 rounded focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent text-sm"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-neutral-500">
+                  • Före startdatum = <span className="text-orange-600">Kommande</span><br/>
+                  • Mellan start och slut = <span className="text-red-600">Pågående</span><br/>
+                  • Efter slutdatum = Arkiverad (visas ej på startsidan)
+                </p>
               </div>
 
               <div className="flex gap-3 pt-4">

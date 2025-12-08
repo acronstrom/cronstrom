@@ -107,9 +107,19 @@ async function initDB() {
         description TEXT,
         is_current BOOLEAN DEFAULT false,
         is_upcoming BOOLEAN DEFAULT false,
+        start_date DATE,
+        end_date DATE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
+    
+    // Add date columns if they don't exist (for existing tables)
+    try {
+      await sql`ALTER TABLE exhibitions ADD COLUMN IF NOT EXISTS start_date DATE`;
+      await sql`ALTER TABLE exhibitions ADD COLUMN IF NOT EXISTS end_date DATE`;
+    } catch (e) {
+      // Columns might already exist
+    }
     
     // Create education table
     await sql`
@@ -349,8 +359,45 @@ app.get('/api/exhibitions', async (req, res) => {
   
   try {
     await initDB();
-    const { rows } = await sql`SELECT * FROM exhibitions ORDER BY created_at DESC`;
-    res.json({ exhibitions: rows, database: true });
+    const { rows } = await sql`SELECT * FROM exhibitions ORDER BY start_date DESC NULLS LAST, created_at DESC`;
+    
+    // Calculate is_current and is_upcoming based on dates
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const exhibitionsWithStatus = rows.map(ex => {
+      let is_current = ex.is_current || false;
+      let is_upcoming = ex.is_upcoming || false;
+      
+      // If dates are set, calculate status from them
+      if (ex.start_date || ex.end_date) {
+        const startDate = ex.start_date ? new Date(ex.start_date) : null;
+        const endDate = ex.end_date ? new Date(ex.end_date) : null;
+        
+        if (startDate && endDate) {
+          startDate.setHours(0, 0, 0, 0);
+          endDate.setHours(23, 59, 59, 999);
+          is_upcoming = startDate > today;
+          is_current = startDate <= today && endDate >= today;
+        } else if (startDate && !endDate) {
+          startDate.setHours(0, 0, 0, 0);
+          is_upcoming = startDate > today;
+          is_current = startDate <= today;
+        } else if (!startDate && endDate) {
+          endDate.setHours(23, 59, 59, 999);
+          is_current = endDate >= today;
+          is_upcoming = false;
+        }
+      }
+      
+      return {
+        ...ex,
+        is_current,
+        is_upcoming
+      };
+    });
+    
+    res.json({ exhibitions: exhibitionsWithStatus, database: true });
   } catch (err) {
     console.error('Get exhibitions error:', err);
     res.json({ exhibitions: [], database: false, error: err.message });
@@ -362,13 +409,13 @@ app.post('/api/exhibitions', auth, async (req, res) => {
     return res.status(503).json({ error: 'Database not connected' });
   }
   
-  const { title, venue, date, category, description, is_current, is_upcoming } = req.body;
+  const { title, venue, date, category, description, start_date, end_date } = req.body;
   
   try {
     await initDB();
     const { rows } = await sql`
-      INSERT INTO exhibitions (title, venue, date, category, description, is_current, is_upcoming)
-      VALUES (${title}, ${venue}, ${date}, ${category}, ${description}, ${is_current || false}, ${is_upcoming || false})
+      INSERT INTO exhibitions (title, venue, date, category, description, start_date, end_date)
+      VALUES (${title}, ${venue}, ${date}, ${category}, ${description}, ${start_date || null}, ${end_date || null})
       RETURNING *
     `;
     res.json({ exhibition: rows[0], message: 'Exhibition created', database: true });
@@ -384,14 +431,14 @@ app.put('/api/exhibitions/:id', auth, async (req, res) => {
   }
   
   const { id } = req.params;
-  const { title, venue, date, category, description, is_current, is_upcoming } = req.body;
+  const { title, venue, date, category, description, start_date, end_date } = req.body;
   
   try {
     const { rows } = await sql`
       UPDATE exhibitions 
       SET title = ${title}, venue = ${venue}, date = ${date}, 
           category = ${category}, description = ${description},
-          is_current = ${is_current}, is_upcoming = ${is_upcoming}
+          start_date = ${start_date || null}, end_date = ${end_date || null}
       WHERE id = ${id}
       RETURNING *
     `;
