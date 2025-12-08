@@ -184,7 +184,7 @@ export const defaultArtworks: Artwork[] = [
 
 export const defaultArtistBio: ArtistBio = {
   name: 'Lena Cronström',
-  tagline: 'Utforskar tystnaden mellan tankarna',
+  tagline: 'En målning är en hemlighet om en hemlighet, ju mer du ser – desto mindre får du veta...',
   shortBio: 'I en värld fylld av bilder, ljud och rörelse vill jag bjuda in och uppmana åskådaren: Stanna upp, betrakta och reflektera. Mina målningar i akvarell, akryl och olja är ofta halvabstrakta med färg som går före form. De flesta kan ses som "inre bilder", gestaltning av känslor, minnen, drömmar och fragment av min vardag.',
   fullBio: `Lena Cronströms konstnärliga resa började med en fascination för naturens texturer och fåglarnas graciösa rörelser. Född i Stockholm och verksam från sin ateljé i skärgården, hämtar hon inspiration från den skarpa kontrasten mellan det karga landskapet och Nordens stilla ljus.
   
