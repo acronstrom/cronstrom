@@ -569,6 +569,9 @@ export function ExhibitionsManager() {
                   className="w-full px-4 py-2 border border-neutral-300 rounded focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent h-20 resize-none"
                   placeholder="Kort beskrivning..."
                 />
+                <p className="text-xs text-neutral-400 mt-1">
+                  💡 Länk-format: [länktext](https://url.se) → blir klickbar länk
+                </p>
               </div>
 
               {/* Date range for current/upcoming status */}

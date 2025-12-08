@@ -4,6 +4,35 @@ import { exhibitions as initialExhibitions } from '../lib/data';
 import type { Exhibition } from '../lib/types';
 import { API_BASE } from '../lib/config';
 
+// Helper to render markdown links [text](url) as clickable links
+function MarkdownText({ text, className }: { text: string; className?: string }) {
+  // Convert markdown links [text](url) to HTML
+  const parts = text.split(/(\[[^\]]+\]\([^)]+\))/g);
+  
+  return (
+    <span className={className}>
+      {parts.map((part, index) => {
+        const linkMatch = part.match(/\[([^\]]+)\]\(([^)]+)\)/);
+        if (linkMatch) {
+          const [, linkText, url] = linkMatch;
+          return (
+            <a
+              key={index}
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-amber-600 hover:text-amber-700 underline underline-offset-2"
+            >
+              {linkText}
+            </a>
+          );
+        }
+        return <span key={index}>{part}</span>;
+      })}
+    </span>
+  );
+}
+
 function ExhibitionItem({ exhibition }: { exhibition: Exhibition }) {
   const displayTitle = exhibition.title
     .replace(/^Separatutställning$/, '')
@@ -203,7 +232,9 @@ export function Exhibitions() {
                       )}
                     </p>
                     {ex.description && (
-                      <p className="text-neutral-500 text-sm mt-2 whitespace-pre-line">{ex.description}</p>
+                      <p className="text-neutral-500 text-sm mt-2 whitespace-pre-line">
+                        <MarkdownText text={ex.description} />
+                      </p>
                     )}
                   </div>
                 ))}
@@ -234,7 +265,9 @@ export function Exhibitions() {
                       )}
                     </p>
                     {ex.description && (
-                      <p className="text-neutral-500 text-sm mt-2 whitespace-pre-line">{ex.description}</p>
+                      <p className="text-neutral-500 text-sm mt-2 whitespace-pre-line">
+                        <MarkdownText text={ex.description} />
+                      </p>
                     )}
                   </div>
                 ))}
