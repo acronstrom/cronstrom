@@ -114,10 +114,12 @@ export function ArtworkModal({
                   <h3 className="text-xs uppercase tracking-wider text-white/50 mb-1">Teknik</h3>
                   <p className="text-white/90">{artwork.medium}</p>
                 </div>
-                <div className="text-right">
-                  <h3 className="text-xs uppercase tracking-wider text-white/50 mb-1">Mått</h3>
-                  <p className="text-white/90">{artwork.dimensions}</p>
-                </div>
+                {artwork.dimensions && (
+                  <div className="text-right">
+                    <h3 className="text-xs uppercase tracking-wider text-white/50 mb-1">Mått</h3>
+                    <p className="text-white/90">{artwork.dimensions}</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -142,10 +144,12 @@ export function ArtworkModal({
                <h3 className="text-xs uppercase tracking-wider text-neutral-400 mb-1">Teknik</h3>
                <p className="text-neutral-800">{artwork.medium}</p>
              </div>
-             <div>
-               <h3 className="text-xs uppercase tracking-wider text-neutral-400 mb-1">Mått</h3>
-               <p className="text-neutral-800">{artwork.dimensions}</p>
-             </div>
+             {artwork.dimensions && (
+               <div>
+                 <h3 className="text-xs uppercase tracking-wider text-neutral-400 mb-1">Mått</h3>
+                 <p className="text-neutral-800">{artwork.dimensions}</p>
+               </div>
+             )}
           </div>
 
           {/* Navigation hint */}
