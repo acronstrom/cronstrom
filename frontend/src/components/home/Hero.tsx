@@ -6,6 +6,34 @@ import { artistBio as defaultArtistBio, exhibitions as initialExhibitions } from
 import type { Exhibition } from '../../lib/types';
 import { API_BASE } from '../../lib/config';
 
+// Helper to render markdown links [text](url) as clickable links
+function MarkdownText({ text, className }: { text: string; className?: string }) {
+  const parts = text.split(/(\[[^\]]+\]\([^)]+\))/g);
+  
+  return (
+    <span className={className}>
+      {parts.map((part, index) => {
+        const linkMatch = part.match(/\[([^\]]+)\]\(([^)]+)\)/);
+        if (linkMatch) {
+          const [, linkText, url] = linkMatch;
+          return (
+            <a
+              key={index}
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-amber-400 hover:text-amber-300 underline underline-offset-2"
+            >
+              {linkText}
+            </a>
+          );
+        }
+        return <span key={index}>{part}</span>;
+      })}
+    </span>
+  );
+}
+
 export function Hero() {
   const navigate = useNavigate();
   const [exhibitions, setExhibitions] = useState<Exhibition[]>([]);
@@ -55,7 +83,8 @@ export function Hero() {
           is_current: e.is_current,
           is_upcoming: e.is_upcoming,
           start_date: e.start_date,
-          end_date: e.end_date
+          end_date: e.end_date,
+          description: e.description
         }));
         setExhibitions(mapped);
       } else {
@@ -183,13 +212,19 @@ export function Hero() {
                 {currentExhibitions.length > 0 ? (
                   currentExhibitions.slice(0, 2).map((exhibition, index) => {
                     const dateRange = formatDateRange((exhibition as any).start_date, (exhibition as any).end_date);
+                    const description = (exhibition as any).description;
                     return (
-                      <div key={exhibition.id || index} className="mb-2 md:mb-3">
+                      <div key={exhibition.id || index} className="mb-3 md:mb-4">
                         <p className="text-white text-base md:text-lg font-serif">{exhibition.title}</p>
                         <p className="text-white/50 text-xs md:text-sm">
                           {exhibition.venue || exhibition.location}
                           {dateRange && <span className="text-white/40"> · {dateRange}</span>}
                         </p>
+                        {description && (
+                          <p className="text-white/40 text-[10px] md:text-xs mt-1 whitespace-pre-line leading-relaxed">
+                            <MarkdownText text={description} />
+                          </p>
+                        )}
                       </div>
                     );
                   })
@@ -211,13 +246,19 @@ export function Hero() {
                 {upcomingExhibitions.length > 0 ? (
                   upcomingExhibitions.slice(0, 2).map((exhibition, index) => {
                     const dateRange = formatDateRange((exhibition as any).start_date, (exhibition as any).end_date);
+                    const description = (exhibition as any).description;
                     return (
-                      <div key={exhibition.id || index} className="mb-2 md:mb-3">
+                      <div key={exhibition.id || index} className="mb-3 md:mb-4">
                         <p className="text-white text-base md:text-lg font-serif">{exhibition.title}</p>
                         <p className="text-white/50 text-xs md:text-sm">
                           {exhibition.venue || exhibition.location}
                           {dateRange && <span className="text-white/40"> · {dateRange}</span>}
                         </p>
+                        {description && (
+                          <p className="text-white/40 text-[10px] md:text-xs mt-1 whitespace-pre-line leading-relaxed">
+                            <MarkdownText text={description} />
+                          </p>
+                        )}
                       </div>
                     );
                   })
