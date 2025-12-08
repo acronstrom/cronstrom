@@ -249,7 +249,7 @@ export function AdminSettings() {
                   </div>
                   
                   <p className="text-xs text-neutral-400 mt-4">
-                    Obs: Dessa inställningar sparas i databasen men påverkar för tillfället inte den publika sidan direkt.
+                    Dessa inställningar visas på startsidans Hero-sektion.
                   </p>
                 </div>
               )}

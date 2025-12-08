@@ -2,17 +2,41 @@ import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { artistBio, exhibitions as initialExhibitions } from '../../lib/data';
+import { artistBio as defaultArtistBio, exhibitions as initialExhibitions } from '../../lib/data';
 import type { Exhibition } from '../../lib/types';
 import { API_BASE } from '../../lib/config';
 
 export function Hero() {
   const navigate = useNavigate();
   const [exhibitions, setExhibitions] = useState<Exhibition[]>([]);
+  const [siteSettings, setSiteSettings] = useState({
+    artistName: defaultArtistBio.name,
+    tagline: defaultArtistBio.tagline,
+    shortBio: defaultArtistBio.shortBio,
+  });
 
   useEffect(() => {
     loadExhibitions();
+    loadSettings();
   }, []);
+
+  const loadSettings = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/settings`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.settings) {
+          setSiteSettings(prev => ({
+            artistName: data.settings.artistName || prev.artistName,
+            tagline: data.settings.tagline || prev.tagline,
+            shortBio: data.settings.shortBio || prev.shortBio,
+          }));
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load settings:', err);
+    }
+  };
 
   const loadExhibitions = async () => {
     try {
@@ -71,10 +95,10 @@ export function Hero() {
             className="max-w-2xl"
           >
             <h2 className="text-sm md:text-base uppercase tracking-[0.3em] text-neutral-300 mb-6 font-medium border-l-2 border-white pl-4">
-              {artistBio.tagline}
+              {siteSettings.tagline}
             </h2>
             <h1 className="text-5xl md:text-8xl lg:text-9xl font-serif text-white mb-8 tracking-tighter leading-none drop-shadow-lg">
-              {artistBio.name}
+              {siteSettings.artistName}
             </h1>
             
             {/* Artist Statement - Frosted Glass (matching exhibitions panel) */}
@@ -84,7 +108,7 @@ export function Hero() {
               <div className="absolute top-0 left-0 w-[2px] h-12 bg-white/60"></div>
               
               <p className="text-white/90 text-lg md:text-xl font-light leading-relaxed italic">
-                {artistBio.shortBio}
+                {siteSettings.shortBio}
               </p>
               
               {/* Bottom decorative accent */}
