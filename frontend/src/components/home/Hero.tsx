@@ -53,7 +53,9 @@ export function Hero() {
           year: e.date,
           category: e.category,
           is_current: e.is_current,
-          is_upcoming: e.is_upcoming
+          is_upcoming: e.is_upcoming,
+          start_date: e.start_date,
+          end_date: e.end_date
         }));
         setExhibitions(mapped);
       } else {
@@ -70,6 +72,27 @@ export function Hero() {
     ex.category !== 'commission' && 
     ex.category !== 'represented'
   );
+
+  // Format date range for display
+  const formatDateRange = (startDate?: string, endDate?: string) => {
+    if (!startDate && !endDate) return null;
+    
+    const formatDate = (dateStr: string) => {
+      const date = new Date(dateStr);
+      const day = date.getDate();
+      const month = date.toLocaleDateString('sv-SE', { month: 'short' }).replace('.', '');
+      return `${day} ${month}`;
+    };
+    
+    if (startDate && endDate) {
+      return `${formatDate(startDate)} – ${formatDate(endDate)}`;
+    } else if (startDate) {
+      return `Från ${formatDate(startDate)}`;
+    } else if (endDate) {
+      return `T.o.m. ${formatDate(endDate)}`;
+    }
+    return null;
+  };
 
   return (
     <section className="relative min-h-screen flex items-center md:items-end overflow-hidden pt-20 md:pt-0">
@@ -158,12 +181,18 @@ export function Hero() {
                   Pågående
                 </p>
                 {currentExhibitions.length > 0 ? (
-                  currentExhibitions.slice(0, 2).map((exhibition, index) => (
-                    <div key={exhibition.id || index} className="mb-2 md:mb-3">
-                      <p className="text-white text-base md:text-lg font-serif">{exhibition.title}</p>
-                      <p className="text-white/50 text-xs md:text-sm">{exhibition.venue || exhibition.location}</p>
-                    </div>
-                  ))
+                  currentExhibitions.slice(0, 2).map((exhibition, index) => {
+                    const dateRange = formatDateRange((exhibition as any).start_date, (exhibition as any).end_date);
+                    return (
+                      <div key={exhibition.id || index} className="mb-2 md:mb-3">
+                        <p className="text-white text-base md:text-lg font-serif">{exhibition.title}</p>
+                        <p className="text-white/50 text-xs md:text-sm">
+                          {exhibition.venue || exhibition.location}
+                          {dateRange && <span className="text-white/40"> · {dateRange}</span>}
+                        </p>
+                      </div>
+                    );
+                  })
                 ) : (
                   <p className="text-white/30 text-xs md:text-sm italic">
                     Inga pågående just nu
@@ -180,12 +209,18 @@ export function Hero() {
                   Kommande
                 </p>
                 {upcomingExhibitions.length > 0 ? (
-                  upcomingExhibitions.slice(0, 2).map((exhibition, index) => (
-                    <div key={exhibition.id || index} className="mb-2 md:mb-3">
-                      <p className="text-white text-base md:text-lg font-serif">{exhibition.title}</p>
-                      <p className="text-white/50 text-xs md:text-sm">{exhibition.venue || exhibition.location}</p>
-                    </div>
-                  ))
+                  upcomingExhibitions.slice(0, 2).map((exhibition, index) => {
+                    const dateRange = formatDateRange((exhibition as any).start_date, (exhibition as any).end_date);
+                    return (
+                      <div key={exhibition.id || index} className="mb-2 md:mb-3">
+                        <p className="text-white text-base md:text-lg font-serif">{exhibition.title}</p>
+                        <p className="text-white/50 text-xs md:text-sm">
+                          {exhibition.venue || exhibition.location}
+                          {dateRange && <span className="text-white/40"> · {dateRange}</span>}
+                        </p>
+                      </div>
+                    );
+                  })
                 ) : (
                   <p className="text-white/30 text-xs md:text-sm italic">
                     Inga kommande just nu
