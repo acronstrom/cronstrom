@@ -562,7 +562,8 @@ app.post('/api/upload', auth, async (req, res) => {
 });
 
 // SETTINGS ROUTES
-app.get('/api/settings', auth, async (req, res) => {
+// Public settings endpoint - no auth required for reading
+app.get('/api/settings', async (req, res) => {
   if (!dbConnected || !sql) {
     return res.json({ settings: {}, database: false });
   }
