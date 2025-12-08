@@ -109,14 +109,18 @@ async function initDB() {
         is_upcoming BOOLEAN DEFAULT false,
         start_date DATE,
         end_date DATE,
+        manual_current BOOLEAN DEFAULT false,
+        manual_upcoming BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
     
-    // Add date columns if they don't exist (for existing tables)
+    // Add columns if they don't exist (for existing tables)
     try {
       await sql`ALTER TABLE exhibitions ADD COLUMN IF NOT EXISTS start_date DATE`;
       await sql`ALTER TABLE exhibitions ADD COLUMN IF NOT EXISTS end_date DATE`;
+      await sql`ALTER TABLE exhibitions ADD COLUMN IF NOT EXISTS manual_current BOOLEAN DEFAULT false`;
+      await sql`ALTER TABLE exhibitions ADD COLUMN IF NOT EXISTS manual_upcoming BOOLEAN DEFAULT false`;
     } catch (e) {
       // Columns might already exist
     }
@@ -361,15 +365,15 @@ app.get('/api/exhibitions', async (req, res) => {
     await initDB();
     const { rows } = await sql`SELECT * FROM exhibitions ORDER BY start_date DESC NULLS LAST, created_at DESC`;
     
-    // Calculate is_current and is_upcoming based on dates
+    // Calculate is_current and is_upcoming based on dates OR manual flags
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
     const exhibitionsWithStatus = rows.map(ex => {
-      let is_current = ex.is_current || false;
-      let is_upcoming = ex.is_upcoming || false;
+      let is_current = false;
+      let is_upcoming = false;
       
-      // If dates are set, calculate status from them
+      // If dates are set, calculate status from them (dates take priority)
       if (ex.start_date || ex.end_date) {
         const startDate = ex.start_date ? new Date(ex.start_date) : null;
         const endDate = ex.end_date ? new Date(ex.end_date) : null;
@@ -388,6 +392,10 @@ app.get('/api/exhibitions', async (req, res) => {
           is_current = endDate >= today;
           is_upcoming = false;
         }
+      } else {
+        // No dates set - use manual flags
+        is_current = ex.manual_current || false;
+        is_upcoming = ex.manual_upcoming || false;
       }
       
       return {
@@ -409,13 +417,13 @@ app.post('/api/exhibitions', auth, async (req, res) => {
     return res.status(503).json({ error: 'Database not connected' });
   }
   
-  const { title, venue, date, category, description, start_date, end_date } = req.body;
+  const { title, venue, date, category, description, start_date, end_date, manual_current, manual_upcoming } = req.body;
   
   try {
     await initDB();
     const { rows } = await sql`
-      INSERT INTO exhibitions (title, venue, date, category, description, start_date, end_date)
-      VALUES (${title}, ${venue}, ${date}, ${category}, ${description}, ${start_date || null}, ${end_date || null})
+      INSERT INTO exhibitions (title, venue, date, category, description, start_date, end_date, manual_current, manual_upcoming)
+      VALUES (${title}, ${venue}, ${date}, ${category}, ${description}, ${start_date || null}, ${end_date || null}, ${manual_current || false}, ${manual_upcoming || false})
       RETURNING *
     `;
     res.json({ exhibition: rows[0], message: 'Exhibition created', database: true });
@@ -431,14 +439,15 @@ app.put('/api/exhibitions/:id', auth, async (req, res) => {
   }
   
   const { id } = req.params;
-  const { title, venue, date, category, description, start_date, end_date } = req.body;
+  const { title, venue, date, category, description, start_date, end_date, manual_current, manual_upcoming } = req.body;
   
   try {
     const { rows } = await sql`
       UPDATE exhibitions 
       SET title = ${title}, venue = ${venue}, date = ${date}, 
           category = ${category}, description = ${description},
-          start_date = ${start_date || null}, end_date = ${end_date || null}
+          start_date = ${start_date || null}, end_date = ${end_date || null},
+          manual_current = ${manual_current || false}, manual_upcoming = ${manual_upcoming || false}
       WHERE id = ${id}
       RETURNING *
     `;

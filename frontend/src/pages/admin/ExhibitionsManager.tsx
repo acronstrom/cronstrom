@@ -16,6 +16,8 @@ interface ExhibitionFormData {
   description: string;
   start_date: string;
   end_date: string;
+  manual_current: boolean;
+  manual_upcoming: boolean;
 }
 
 const emptyForm: ExhibitionFormData = {
@@ -25,7 +27,9 @@ const emptyForm: ExhibitionFormData = {
   category: 'separat',
   description: '',
   start_date: '',
-  end_date: ''
+  end_date: '',
+  manual_current: false,
+  manual_upcoming: false
 };
 
 export function ExhibitionsManager() {
@@ -64,7 +68,9 @@ export function ExhibitionsManager() {
           is_current: e.is_current,
           is_upcoming: e.is_upcoming,
           start_date: e.start_date ? e.start_date.split('T')[0] : '',
-          end_date: e.end_date ? e.end_date.split('T')[0] : ''
+          end_date: e.end_date ? e.end_date.split('T')[0] : '',
+          manual_current: e.manual_current || false,
+          manual_upcoming: e.manual_upcoming || false
         }));
         setExhibitionList(mapped);
         setUseDatabase(true);
@@ -138,7 +144,9 @@ export function ExhibitionsManager() {
       category: exhibition.category || 'separat',
       description: exhibition.description || '',
       start_date: (exhibition as any).start_date || '',
-      end_date: (exhibition as any).end_date || ''
+      end_date: (exhibition as any).end_date || '',
+      manual_current: (exhibition as any).manual_current || false,
+      manual_upcoming: (exhibition as any).manual_upcoming || false
     };
     setFormData(data);
     setEditingExhibition(data);
@@ -566,7 +574,7 @@ export function ExhibitionsManager() {
               {/* Date range for current/upcoming status */}
               <div className="bg-neutral-50 p-4 rounded-lg space-y-3">
                 <p className="text-sm font-medium text-neutral-700">
-                  Visningsperiod <span className="text-neutral-400 font-normal">(för Pågående/Kommande status)</span>
+                  Visningsperiod <span className="text-neutral-400 font-normal">(valfritt - för automatisk status)</span>
                 </p>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -589,9 +597,45 @@ export function ExhibitionsManager() {
                   </div>
                 </div>
                 <p className="text-xs text-neutral-500">
-                  • Före startdatum = <span className="text-orange-600">Kommande</span><br/>
-                  • Mellan start och slut = <span className="text-red-600">Pågående</span><br/>
-                  • Efter slutdatum = Arkiverad (visas ej på startsidan)
+                  Om datum är satta beräknas status automatiskt. Annars använd manuella flaggor nedan.
+                </p>
+              </div>
+
+              {/* Manual override flags */}
+              <div className="bg-blue-50 p-4 rounded-lg space-y-3">
+                <p className="text-sm font-medium text-neutral-700">
+                  Manuell status <span className="text-neutral-400 font-normal">(om datum ej är satta)</span>
+                </p>
+                <div className="flex gap-6">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.manual_current}
+                      onChange={e => setFormData(prev => ({ 
+                        ...prev, 
+                        manual_current: e.target.checked,
+                        manual_upcoming: e.target.checked ? false : prev.manual_upcoming 
+                      }))}
+                      className="rounded border-neutral-300 text-red-600 focus:ring-red-500"
+                    />
+                    <span className="text-sm">🔴 Pågående</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.manual_upcoming}
+                      onChange={e => setFormData(prev => ({ 
+                        ...prev, 
+                        manual_upcoming: e.target.checked,
+                        manual_current: e.target.checked ? false : prev.manual_current 
+                      }))}
+                      className="rounded border-neutral-300 text-orange-600 focus:ring-orange-500"
+                    />
+                    <span className="text-sm">🟠 Kommande</span>
+                  </label>
+                </div>
+                <p className="text-xs text-neutral-500">
+                  Dessa används endast om inga datum är ifyllda. Datum har alltid prioritet.
                 </p>
               </div>
 
