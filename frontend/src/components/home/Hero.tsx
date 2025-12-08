@@ -77,14 +77,19 @@ export function Hero() {
               {artistBio.name}
             </h1>
             
-            {/* Artist Statement - Frosted Glass */}
-            <div className="relative max-w-xl mb-10">
-              <div className="absolute inset-0 bg-white/10 backdrop-blur-md rounded-lg"></div>
-              <div className="relative p-6 border border-white/20 rounded-lg">
-                <p className="text-white/90 text-lg md:text-xl font-light leading-relaxed italic">
-                  {artistBio.shortBio}
-                </p>
-              </div>
+            {/* Artist Statement - Frosted Glass (matching exhibitions panel) */}
+            <div className="relative max-w-xl mb-10 bg-black/10 backdrop-blur-sm border border-white/5 p-6 md:p-8">
+              {/* Decorative corner accent */}
+              <div className="absolute top-0 left-0 w-12 h-[2px] bg-white/60"></div>
+              <div className="absolute top-0 left-0 w-[2px] h-12 bg-white/60"></div>
+              
+              <p className="text-white/90 text-lg md:text-xl font-light leading-relaxed italic">
+                {artistBio.shortBio}
+              </p>
+              
+              {/* Bottom decorative accent */}
+              <div className="absolute bottom-0 right-0 w-12 h-[2px] bg-white/30"></div>
+              <div className="absolute bottom-0 right-0 w-[2px] h-12 bg-white/30"></div>
             </div>
             
             {/* Utforska Galleri Button */}
