@@ -34,7 +34,7 @@ export const ArtworkGrid = ({ items, onOpen }: { items: Artwork[], onOpen: (item
           </div>
         </div>
         <h3 className="font-serif text-xl group-hover:text-neutral-600 transition-colors">{art.title}</h3>
-        <p className="text-neutral-500 text-sm mt-1">{art.medium}, {art.year}</p>
+        <p className="text-neutral-500 text-sm mt-1">{art.medium}</p>
       </motion.div>
     ))}
   </div>
