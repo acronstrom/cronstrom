@@ -72,7 +72,7 @@ export function Hero() {
   );
 
   return (
-    <section className="relative h-screen flex items-end overflow-hidden">
+    <section className="relative min-h-screen flex items-center md:items-end overflow-hidden pt-20 md:pt-0">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <img 
@@ -80,12 +80,12 @@ export function Hero() {
           alt="Lena Cronström - Vita gäss III" 
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-black/30 md:from-black/90 md:via-black/40 md:to-transparent"></div>
       </div>
 
       {/* Content - Two column layout */}
-      <div className="relative z-10 container mx-auto px-6 pb-16 md:pb-24 w-full">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-12">
+      <div className="relative z-10 container mx-auto px-4 md:px-6 py-8 md:pb-24 w-full">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-6 md:gap-12">
           
           {/* Left Column - Main content */}
           <motion.div
@@ -94,35 +94,38 @@ export function Hero() {
             transition={{ duration: 1, ease: "easeOut" }}
             className="max-w-2xl"
           >
-            <h2 className="text-sm md:text-base uppercase tracking-[0.3em] text-neutral-300 mb-6 font-medium border-l-2 border-white pl-4">
-              {siteSettings.tagline}
-            </h2>
-            <h1 className="text-5xl md:text-8xl lg:text-9xl font-serif text-white mb-8 tracking-tighter leading-none drop-shadow-lg">
+            {/* Artist Name - prominent on mobile */}
+            <h1 className="text-4xl sm:text-5xl md:text-8xl lg:text-9xl font-serif text-white mb-4 md:mb-8 tracking-tighter leading-none drop-shadow-lg">
               {siteSettings.artistName}
             </h1>
             
-            {/* Artist Statement - Frosted Glass (matching exhibitions panel) */}
-            <div className="relative max-w-xl mb-10 bg-black/10 backdrop-blur-sm border border-white/5 p-6 md:p-8">
-              {/* Decorative corner accent */}
-              <div className="absolute top-0 left-0 w-12 h-[2px] bg-white/60"></div>
-              <div className="absolute top-0 left-0 w-[2px] h-12 bg-white/60"></div>
+            {/* Tagline - smaller on mobile */}
+            <h2 className="text-xs sm:text-sm md:text-base uppercase tracking-[0.2em] md:tracking-[0.3em] text-neutral-300 mb-4 md:mb-6 font-medium border-l-2 border-white/60 pl-3 md:pl-4">
+              {siteSettings.tagline}
+            </h2>
+            
+            {/* Artist Statement - Frosted Glass - more compact on mobile */}
+            <div className="relative max-w-xl mb-6 md:mb-10 bg-black/20 md:bg-black/10 backdrop-blur-sm border border-white/10 md:border-white/5 p-4 md:p-8">
+              {/* Decorative corner accent - hidden on mobile */}
+              <div className="hidden md:block absolute top-0 left-0 w-12 h-[2px] bg-white/60"></div>
+              <div className="hidden md:block absolute top-0 left-0 w-[2px] h-12 bg-white/60"></div>
               
-              <p className="text-white/90 text-lg md:text-xl font-light leading-relaxed italic">
+              <p className="text-white/90 text-sm sm:text-base md:text-xl font-light leading-relaxed italic">
                 {siteSettings.shortBio}
               </p>
               
-              {/* Bottom decorative accent */}
-              <div className="absolute bottom-0 right-0 w-12 h-[2px] bg-white/30"></div>
-              <div className="absolute bottom-0 right-0 w-[2px] h-12 bg-white/30"></div>
+              {/* Bottom decorative accent - hidden on mobile */}
+              <div className="hidden md:block absolute bottom-0 right-0 w-12 h-[2px] bg-white/30"></div>
+              <div className="hidden md:block absolute bottom-0 right-0 w-[2px] h-12 bg-white/30"></div>
             </div>
             
-            {/* Utforska Galleri Button */}
+            {/* Utforska Galleri Button - smaller on mobile */}
             <button 
               onClick={() => navigate('/galleri')}
-              className="group px-10 py-4 bg-white text-black hover:bg-neutral-200 transition-all duration-300 flex items-center gap-3 text-sm uppercase tracking-widest"
+              className="group px-6 md:px-10 py-3 md:py-4 bg-white text-black hover:bg-neutral-200 transition-all duration-300 flex items-center gap-2 md:gap-3 text-xs md:text-sm uppercase tracking-widest"
             >
               Utforska Galleri
-              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform md:w-4 md:h-4" />
             </button>
           </motion.div>
 
@@ -131,68 +134,68 @@ export function Hero() {
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 1, delay: 0.5 }}
-            className="md:max-w-sm"
+            className="w-full md:max-w-sm"
           >
-            {/* Glassmorphic container - more transparent */}
-            <div className="bg-black/10 backdrop-blur-sm border border-white/5 p-6 md:p-8 relative">
-              {/* Decorative corner accent */}
-              <div className="absolute top-0 left-0 w-12 h-[2px] bg-white/60"></div>
-              <div className="absolute top-0 left-0 w-[2px] h-12 bg-white/60"></div>
+            {/* Glassmorphic container */}
+            <div className="bg-black/20 md:bg-black/10 backdrop-blur-sm border border-white/10 md:border-white/5 p-4 md:p-8 relative">
+              {/* Decorative corner accent - hidden on mobile */}
+              <div className="hidden md:block absolute top-0 left-0 w-12 h-[2px] bg-white/60"></div>
+              <div className="hidden md:block absolute top-0 left-0 w-[2px] h-12 bg-white/60"></div>
               
               {/* Link to exhibitions page */}
               <button 
                 onClick={() => navigate('/utstallningar')}
-                className="group mb-6 text-white hover:text-white/80 transition-all duration-300 flex items-center gap-3 text-sm uppercase tracking-[0.2em] font-medium"
+                className="group mb-4 md:mb-6 text-white hover:text-white/80 transition-all duration-300 flex items-center gap-2 md:gap-3 text-xs md:text-sm uppercase tracking-[0.15em] md:tracking-[0.2em] font-medium"
               >
-                <span className="w-8 h-[1px] bg-white/60 group-hover:w-12 transition-all duration-300"></span>
+                <span className="w-6 md:w-8 h-[1px] bg-white/60 group-hover:w-10 md:group-hover:w-12 transition-all duration-300"></span>
                 Aktuella Utställningar
                 <span className="opacity-0 group-hover:opacity-100 transition-opacity">→</span>
               </button>
 
               {/* Pågående */}
-              <div className="mb-6">
-                <p className="text-xs uppercase tracking-[0.2em] text-white/70 mb-3 font-medium">
+              <div className="mb-4 md:mb-6">
+                <p className="text-[10px] md:text-xs uppercase tracking-[0.15em] md:tracking-[0.2em] text-white/70 mb-2 md:mb-3 font-medium">
                   Pågående
                 </p>
                 {currentExhibitions.length > 0 ? (
                   currentExhibitions.slice(0, 2).map((exhibition, index) => (
-                    <div key={exhibition.id || index} className="mb-3">
-                      <p className="text-white text-lg font-serif">{exhibition.title}</p>
-                      <p className="text-white/50 text-sm">{exhibition.venue || exhibition.location}</p>
+                    <div key={exhibition.id || index} className="mb-2 md:mb-3">
+                      <p className="text-white text-base md:text-lg font-serif">{exhibition.title}</p>
+                      <p className="text-white/50 text-xs md:text-sm">{exhibition.venue || exhibition.location}</p>
                     </div>
                   ))
                 ) : (
-                  <p className="text-white/30 text-sm italic">
+                  <p className="text-white/30 text-xs md:text-sm italic">
                     Inga pågående just nu
                   </p>
                 )}
               </div>
 
               {/* Divider */}
-              <div className="w-full h-[1px] bg-gradient-to-r from-white/20 via-white/10 to-transparent mb-6"></div>
+              <div className="w-full h-[1px] bg-gradient-to-r from-white/20 via-white/10 to-transparent mb-4 md:mb-6"></div>
 
               {/* Kommande */}
               <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-white/70 mb-3 font-medium">
+                <p className="text-[10px] md:text-xs uppercase tracking-[0.15em] md:tracking-[0.2em] text-white/70 mb-2 md:mb-3 font-medium">
                   Kommande
                 </p>
                 {upcomingExhibitions.length > 0 ? (
                   upcomingExhibitions.slice(0, 2).map((exhibition, index) => (
-                    <div key={exhibition.id || index} className="mb-3">
-                      <p className="text-white text-lg font-serif">{exhibition.title}</p>
-                      <p className="text-white/50 text-sm">{exhibition.venue || exhibition.location}</p>
+                    <div key={exhibition.id || index} className="mb-2 md:mb-3">
+                      <p className="text-white text-base md:text-lg font-serif">{exhibition.title}</p>
+                      <p className="text-white/50 text-xs md:text-sm">{exhibition.venue || exhibition.location}</p>
                     </div>
                   ))
                 ) : (
-                  <p className="text-white/30 text-sm italic">
+                  <p className="text-white/30 text-xs md:text-sm italic">
                     Inga kommande just nu
                   </p>
                 )}
               </div>
 
-              {/* Bottom decorative accent */}
-              <div className="absolute bottom-0 right-0 w-12 h-[2px] bg-white/30"></div>
-              <div className="absolute bottom-0 right-0 w-[2px] h-12 bg-white/30"></div>
+              {/* Bottom decorative accent - hidden on mobile */}
+              <div className="hidden md:block absolute bottom-0 right-0 w-12 h-[2px] bg-white/30"></div>
+              <div className="hidden md:block absolute bottom-0 right-0 w-[2px] h-12 bg-white/30"></div>
             </div>
           </motion.div>
         </div>
