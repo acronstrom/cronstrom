@@ -199,6 +199,121 @@ export function GalleryManager() {
   };
 
   const [isUploading, setIsUploading] = useState(false);
+  const [isMigrating, setIsMigrating] = useState(false);
+
+  // Glasfusing images to migrate from WordPress
+  const glasfusingImagesToMigrate = [
+    {
+      imageUrl: 'https://cronstrom.net/wp-content/uploads/2024/12/Bla-bordsdekoration--scaled.jpg',
+      title: 'Blå bordsdekoration',
+      medium: 'Glasfusing',
+      dimensions: '',
+      year: '2024',
+      category: 'Glasfusing',
+      description: 'Blå bordsdekoration i glasfusing'
+    },
+    {
+      imageUrl: 'https://cronstrom.net/wp-content/uploads/2024/12/Blarott-fat.jpg',
+      title: 'Blårött fat',
+      medium: 'Glasfusing',
+      dimensions: '',
+      year: '2024',
+      category: 'Glasfusing',
+      description: 'Fat i blått och rött glas'
+    },
+    {
+      imageUrl: 'https://cronstrom.net/wp-content/uploads/2024/12/IMG_8533-scaled.jpg',
+      title: 'Glasfusing komposition',
+      medium: 'Glasfusing',
+      dimensions: '',
+      year: '2024',
+      category: 'Glasfusing',
+      description: 'Glasfusing komposition'
+    },
+    {
+      imageUrl: 'https://cronstrom.net/wp-content/uploads/2024/12/svartvitt-fat-scaled.jpg',
+      title: 'Svartvitt fat',
+      medium: 'Glasfusing',
+      dimensions: '',
+      year: '2024',
+      category: 'Glasfusing',
+      description: 'Svartvitt fat i glasfusing'
+    },
+    {
+      imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/20140129220455.jpg',
+      title: 'Glassmycke 1',
+      medium: 'Glasfusing',
+      dimensions: '',
+      year: '2014',
+      category: 'Glasfusing',
+      description: 'Handgjort glassmycke'
+    },
+    {
+      imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/20140129221355.jpg',
+      title: 'Glassmycke 2',
+      medium: 'Glasfusing',
+      dimensions: '',
+      year: '2014',
+      category: 'Glasfusing',
+      description: 'Glassmycke i regnbågens färger'
+    },
+    {
+      imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/20140129221102.jpg',
+      title: 'Glassmycke 3',
+      medium: 'Glasfusing',
+      dimensions: '',
+      year: '2014',
+      category: 'Glasfusing',
+      description: 'Unik glasfusing kreation'
+    }
+  ];
+
+  // Migrate glasfusing images from WordPress to Vercel Blob
+  const migrateGlasfusingImages = async () => {
+    if (!useDatabase) {
+      alert('Databasen måste vara ansluten för att migrera bilder.');
+      return;
+    }
+    
+    // Check if glasfusing images already exist
+    const existingGlasfusing = artworks.filter(a => a.category === 'Glasfusing');
+    if (existingGlasfusing.length > 0) {
+      const confirm = window.confirm(
+        `Det finns redan ${existingGlasfusing.length} glasfusing-verk i databasen.\n\nVill du lägga till ${glasfusingImagesToMigrate.length} till?`
+      );
+      if (!confirm) return;
+    }
+    
+    setIsMigrating(true);
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE}/migrate-images`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'x-auth-token': token } : {})
+        },
+        body: JSON.stringify({ images: glasfusingImagesToMigrate })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Migration failed: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      alert(`Migration klar!\n${result.message}`);
+      
+      // Reload artworks to show the new ones
+      await loadArtworks();
+      
+    } catch (err: any) {
+      console.error('Migration error:', err);
+      alert(`Migration misslyckades: ${err.message}`);
+    } finally {
+      setIsMigrating(false);
+    }
+  };
 
   // Compress image before upload - aggressive compression for Vercel's 4.5MB limit
   const compressImage = (file: File, maxWidth = 800, quality = 0.6): Promise<string> => {
@@ -502,6 +617,26 @@ export function GalleryManager() {
               </>
             ) : (
               <>
+                {useDatabase && (
+                  <button
+                    onClick={migrateGlasfusingImages}
+                    disabled={isMigrating}
+                    className="flex items-center gap-2 border border-cyan-500 text-cyan-700 px-4 py-3 text-sm uppercase tracking-wider hover:bg-cyan-50 transition-colors disabled:opacity-50"
+                    title="Migrera glasfusing från WordPress"
+                  >
+                    {isMigrating ? (
+                      <>
+                        <Loader2 size={18} className="animate-spin" />
+                        Migrerar...
+                      </>
+                    ) : (
+                      <>
+                        <Upload size={18} />
+                        Migrera Glasfusing
+                      </>
+                    )}
+                  </button>
+                )}
                 <button
                   onClick={() => setIsReorderMode(true)}
                   className="flex items-center gap-2 border border-neutral-200 px-4 py-3 text-sm uppercase tracking-wider hover:bg-neutral-100 transition-colors"
