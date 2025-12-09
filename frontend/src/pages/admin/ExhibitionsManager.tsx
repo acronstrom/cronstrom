@@ -294,74 +294,79 @@ export function ExhibitionsManager() {
 
       {/* Header */}
       <header className="bg-white border-b border-neutral-200">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link 
-              to="/admin" 
-              className="flex items-center gap-2 border border-neutral-300 text-neutral-600 px-4 py-3 text-sm uppercase tracking-wider hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Tillbaka
-            </Link>
-            <div>
-              <h1 className="text-xl font-serif">Hantera Utställningar</h1>
-              <p className="text-xs text-neutral-500">
-                {exhibitionList.length} utställningar • {useDatabase ? '🟢 Databas' : '🟡 Lokal data'}
-              </p>
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4">
+          {/* Top row - navigation */}
+          <div className="flex items-center justify-between mb-2 md:mb-0">
+            <div className="flex items-center gap-2 md:gap-4">
+              <Link 
+                to="/admin" 
+                className="flex items-center gap-1 md:gap-2 border border-neutral-300 text-neutral-600 px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm uppercase tracking-wider hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">Tillbaka</span>
+              </Link>
+              <div>
+                <h1 className="text-lg md:text-xl font-serif">Utställningar</h1>
+                <p className="text-[10px] md:text-xs text-neutral-500">
+                  {exhibitionList.length} st • {useDatabase ? '🟢 DB' : '🟡 Lokal'}
+                </p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
             <Link
               to="/"
               target="_blank"
-              className="flex items-center gap-2 border border-neutral-300 text-neutral-600 px-4 py-3 text-sm uppercase tracking-wider hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
+              className="flex items-center gap-1 md:gap-2 border border-neutral-300 text-neutral-600 px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm uppercase tracking-wider hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
             >
               <ExternalLink className="w-4 h-4" />
-              Visa webbplats
+              <span className="hidden sm:inline">Visa webbplats</span>
             </Link>
+          </div>
+          {/* Action buttons */}
+          <div className="flex items-center gap-2 md:gap-3 overflow-x-auto pb-1 -mx-4 px-4 md:mx-0 md:px-0 md:justify-end">
             {useDatabase && (
               <button 
                 onClick={handleClearDatabase}
-                className="flex items-center gap-2 border border-red-200 text-red-600 px-4 py-2 text-sm hover:bg-red-50 transition-colors rounded"
+                className="flex items-center gap-1 md:gap-2 border border-red-200 text-red-600 px-2 md:px-4 py-1.5 md:py-2 text-xs md:text-sm hover:bg-red-50 transition-colors rounded whitespace-nowrap"
               >
-                <Trash2 className="w-4 h-4" />
-                Rensa DB
+                <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">Rensa DB</span>
               </button>
             )}
             {!useDatabase && (
               <button 
                 onClick={handleSyncToDatabase}
-                className="flex items-center gap-2 border border-neutral-200 px-4 py-2 text-sm hover:bg-neutral-50 transition-colors rounded"
+                className="flex items-center gap-1 md:gap-2 border border-neutral-200 px-2 md:px-4 py-1.5 md:py-2 text-xs md:text-sm hover:bg-neutral-50 transition-colors rounded whitespace-nowrap"
               >
-                <RotateCcw className="w-4 h-4" />
-                Synka till DB
+                <RotateCcw className="w-3 h-3 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">Synka till DB</span>
               </button>
             )}
             <button 
               onClick={openAddModal}
-              className="flex items-center gap-2 bg-neutral-900 text-white px-4 py-2 text-sm hover:bg-neutral-800 transition-colors rounded"
+              className="flex items-center gap-1 md:gap-2 bg-neutral-900 text-white px-2 md:px-4 py-1.5 md:py-2 text-xs md:text-sm hover:bg-neutral-800 transition-colors rounded whitespace-nowrap"
             >
-              <Plus className="w-4 h-4" />
-              Lägg till utställning
+              <Plus className="w-3 h-3 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">Lägg till</span>
+              <span className="sm:hidden">Ny</span>
             </button>
           </div>
         </div>
       </header>
 
       {/* Info Banner */}
-      <div className={`${useDatabase ? 'bg-green-50 border-green-100 text-green-700' : 'bg-blue-50 border-blue-100 text-blue-700'} border-b px-6 py-3`}>
-        <p className="max-w-7xl mx-auto text-sm">
+      <div className={`${useDatabase ? 'bg-green-50 border-green-100 text-green-700' : 'bg-blue-50 border-blue-100 text-blue-700'} border-b px-4 md:px-6 py-2 md:py-3`}>
+        <p className="max-w-7xl mx-auto text-xs md:text-sm">
           {useDatabase 
-            ? <><strong>Databas ansluten:</strong> Ändringar sparas permanent och visas på hemsidan.</>
-            : <><strong>Lokal data:</strong> Klicka "Synka till DB" för att spara utställningarna i databasen.</>
+            ? <><strong>DB ansluten:</strong> <span className="hidden sm:inline">Ändringar sparas permanent.</span></>
+            : <><strong>Lokal data:</strong> <span className="hidden sm:inline">Synka till DB för att spara.</span></>
           }
         </p>
       </div>
 
       {/* Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-8">
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-7 gap-4 mb-8">
+        <div className="grid grid-cols-3 md:grid-cols-7 gap-2 md:gap-4 mb-4 md:mb-8">
           <button 
             onClick={() => setFilter('all')}
             className={`p-4 rounded-lg text-left transition-colors ${filter === 'all' ? 'bg-neutral-900 text-white' : 'bg-white hover:bg-neutral-50'}`}
@@ -497,10 +502,10 @@ export function ExhibitionsManager() {
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg">
-            <div className="flex items-center justify-between p-6 border-b border-neutral-200">
-              <h2 className="text-xl font-serif">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 md:p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[95vh] md:max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 md:p-6 border-b border-neutral-200 sticky top-0 bg-white">
+              <h2 className="text-lg md:text-xl font-serif">
                 {editingExhibition ? 'Redigera utställning' : 'Lägg till utställning'}
               </h2>
               <button 
@@ -511,7 +516,7 @@ export function ExhibitionsManager() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-4 md:p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-1">
                   Titel

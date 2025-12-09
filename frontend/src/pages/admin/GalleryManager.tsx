@@ -612,40 +612,45 @@ export function GalleryManager() {
 
       {/* Header */}
       <header className="bg-white border-b border-neutral-200 sticky top-0 z-40">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link 
-              to="/admin" 
-              className="flex items-center gap-2 border border-neutral-300 text-neutral-600 px-4 py-3 text-sm uppercase tracking-wider hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
-            >
-              <ArrowLeft size={18} />
-              Tillbaka
-            </Link>
-            <div>
-              <h1 className="font-serif text-xl">Galleri</h1>
-              <p className="text-xs text-neutral-500">
-                {artworks.length} verk • {useDatabase ? '🟢 Databas' : '🟡 Lokal data'}
-              </p>
+        <div className="container mx-auto px-4 md:px-6 py-3 md:py-4">
+          {/* Top row - navigation */}
+          <div className="flex items-center justify-between mb-2 md:mb-0">
+            <div className="flex items-center gap-2 md:gap-4">
+              <Link 
+                to="/admin" 
+                className="flex items-center gap-1 md:gap-2 border border-neutral-300 text-neutral-600 px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm uppercase tracking-wider hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
+              >
+                <ArrowLeft size={16} className="md:w-[18px] md:h-[18px]" />
+                <span className="hidden sm:inline">Tillbaka</span>
+              </Link>
+              <div>
+                <h1 className="font-serif text-lg md:text-xl">Galleri</h1>
+                <p className="text-[10px] md:text-xs text-neutral-500">
+                  {artworks.length} verk • {useDatabase ? '🟢 DB' : '🟡 Lokal'}
+                </p>
+              </div>
             </div>
-          </div>
-          
-          <div className="flex items-center gap-3">
+            
             <Link
               to="/"
               target="_blank"
-              className="flex items-center gap-2 border border-neutral-300 text-neutral-600 px-4 py-3 text-sm uppercase tracking-wider hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
+              className="flex items-center gap-1 md:gap-2 border border-neutral-300 text-neutral-600 px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm uppercase tracking-wider hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
             >
-              <ExternalLink size={18} />
-              Visa webbplats
+              <ExternalLink size={16} className="md:w-[18px] md:h-[18px]" />
+              <span className="hidden sm:inline">Visa webbplats</span>
             </Link>
+          </div>
+          
+          {/* Action buttons row - scrollable on mobile */}
+          <div className="flex items-center gap-2 md:gap-3 overflow-x-auto pb-1 -mx-4 px-4 md:mx-0 md:px-0 md:justify-end">
             {!useDatabase && (
               <button
                 onClick={handleSyncToDatabase}
-                className="flex items-center gap-2 border border-neutral-200 px-4 py-3 text-sm uppercase tracking-wider hover:bg-neutral-100 transition-colors"
+                className="flex items-center gap-1 md:gap-2 border border-neutral-200 px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm uppercase tracking-wider hover:bg-neutral-100 transition-colors whitespace-nowrap"
                 title="Synkronisera till databas"
               >
-                <RotateCcw size={18} />
-                Synka till DB
+                <RotateCcw size={16} />
+                <span className="hidden sm:inline">Synka till DB</span>
               </button>
             )}
             {isReorderMode ? (
@@ -658,18 +663,19 @@ export function GalleryManager() {
                       setHasOrderChanges(false);
                     }
                   }}
-                  className="flex items-center gap-2 border border-neutral-200 px-4 py-3 text-sm uppercase tracking-wider hover:bg-neutral-100 transition-colors"
+                  className="flex items-center gap-1 md:gap-2 border border-neutral-200 px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm uppercase tracking-wider hover:bg-neutral-100 transition-colors whitespace-nowrap"
                 >
-                  <X size={18} />
-                  Avbryt
+                  <X size={16} />
+                  <span className="hidden sm:inline">Avbryt</span>
                 </button>
                 <button
                   onClick={saveOrder}
                   disabled={!hasOrderChanges}
-                  className="flex items-center gap-2 bg-green-600 text-white px-6 py-3 text-sm uppercase tracking-wider hover:bg-green-700 transition-colors disabled:opacity-50"
+                  className="flex items-center gap-1 md:gap-2 bg-green-600 text-white px-3 md:px-6 py-2 md:py-3 text-xs md:text-sm uppercase tracking-wider hover:bg-green-700 transition-colors disabled:opacity-50 whitespace-nowrap"
                 >
-                  <Save size={18} />
-                  Spara ordning
+                  <Save size={16} />
+                  <span className="hidden sm:inline">Spara ordning</span>
+                  <span className="sm:hidden">Spara</span>
                 </button>
               </>
             ) : (
@@ -678,36 +684,37 @@ export function GalleryManager() {
                   <button
                     onClick={migrateAllImages}
                     disabled={isMigrating}
-                    className="flex items-center gap-2 border border-cyan-500 text-cyan-700 px-4 py-3 text-sm uppercase tracking-wider hover:bg-cyan-50 transition-colors disabled:opacity-50"
+                    className="flex items-center gap-1 md:gap-2 border border-cyan-500 text-cyan-700 px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm uppercase tracking-wider hover:bg-cyan-50 transition-colors disabled:opacity-50 whitespace-nowrap"
                     title="Migrera alla bilder från WordPress till Vercel Blob"
                   >
                     {isMigrating ? (
                       <>
-                        <Loader2 size={18} className="animate-spin" />
-                        <span className="max-w-[200px] truncate">{migrationProgress || 'Migrerar...'}</span>
+                        <Loader2 size={16} className="animate-spin" />
+                        <span className="max-w-[100px] md:max-w-[200px] truncate text-xs">{migrationProgress || 'Migrerar...'}</span>
                       </>
                     ) : (
                       <>
-                        <Upload size={18} />
-                        Migrera Bilder (38)
+                        <Upload size={16} />
+                        <span className="hidden sm:inline">Migrera Bilder</span>
                       </>
                     )}
                   </button>
                 )}
                 <button
                   onClick={() => setIsReorderMode(true)}
-                  className="flex items-center gap-2 border border-neutral-200 px-4 py-3 text-sm uppercase tracking-wider hover:bg-neutral-100 transition-colors"
+                  className="flex items-center gap-1 md:gap-2 border border-neutral-200 px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm uppercase tracking-wider hover:bg-neutral-100 transition-colors whitespace-nowrap"
                   title="Ändra ordning"
                 >
-                  <GripVertical size={18} />
-                  Ändra ordning
+                  <GripVertical size={16} />
+                  <span className="hidden sm:inline">Ändra ordning</span>
                 </button>
                 <button
                   onClick={openNewArtwork}
-                  className="flex items-center gap-2 bg-black text-white px-6 py-3 text-sm uppercase tracking-wider hover:bg-neutral-800 transition-colors"
+                  className="flex items-center gap-1 md:gap-2 bg-black text-white px-3 md:px-6 py-2 md:py-3 text-xs md:text-sm uppercase tracking-wider hover:bg-neutral-800 transition-colors whitespace-nowrap"
                 >
-                  <Plus size={18} />
-                  Lägg till verk
+                  <Plus size={16} />
+                  <span className="hidden sm:inline">Lägg till verk</span>
+                  <span className="sm:hidden">Nytt</span>
                 </button>
               </>
             )}
@@ -716,28 +723,28 @@ export function GalleryManager() {
       </header>
 
       {/* Info Banner */}
-      <div className={`${useDatabase ? 'bg-green-50 border-green-100 text-green-700' : 'bg-blue-50 border-blue-100 text-blue-700'} border-b px-6 py-3`}>
-        <p className="container mx-auto text-sm">
+      <div className={`${useDatabase ? 'bg-green-50 border-green-100 text-green-700' : 'bg-blue-50 border-blue-100 text-blue-700'} border-b px-4 md:px-6 py-2 md:py-3`}>
+        <p className="container mx-auto text-xs md:text-sm">
           {useDatabase 
-            ? <><strong>Databas ansluten:</strong> Ändringar sparas permanent i Vercel Postgres.</>
-            : <><strong>Lokal data:</strong> Klicka "Synka till DB" för att spara verken i databasen.</>
+            ? <><strong>DB ansluten:</strong> <span className="hidden sm:inline">Ändringar sparas permanent.</span></>
+            : <><strong>Lokal data:</strong> <span className="hidden sm:inline">Klicka "Synka till DB" för att spara.</span></>
           }
         </p>
       </div>
 
       {/* Reorder Mode Banner */}
       {isReorderMode && (
-        <div className="bg-amber-50 border-b border-amber-200 px-6 py-3">
-          <p className="container mx-auto text-sm text-amber-800">
-            <strong>Sorteringsläge:</strong> Dra och släpp bilderna för att ändra ordning. Klicka "Spara ordning" när du är klar.
+        <div className="bg-amber-50 border-b border-amber-200 px-4 md:px-6 py-2 md:py-3">
+          <p className="container mx-auto text-xs md:text-sm text-amber-800">
+            <strong>Sorteringsläge:</strong> Dra och släpp för att ändra ordning.
           </p>
         </div>
       )}
 
       {/* Category Tabs */}
-      <div className="border-b border-neutral-200 bg-white sticky top-0 z-10">
-        <div className="container mx-auto px-6">
-          <nav className="flex gap-1 overflow-x-auto">
+      <div className="border-b border-neutral-200 bg-white sticky top-[57px] md:top-[73px] z-30">
+        <div className="container mx-auto px-2 md:px-6">
+          <nav className="flex gap-0 md:gap-1 overflow-x-auto scrollbar-hide">
             {tabs.map(tab => {
               const count = tab === 'Alla' 
                 ? artworks.length 
@@ -746,14 +753,14 @@ export function GalleryManager() {
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                  className={`px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
                     activeTab === tab
                       ? 'border-black text-black'
                       : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300'
                   }`}
                 >
                   {tab}
-                  <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+                  <span className={`ml-1 md:ml-2 px-1.5 md:px-2 py-0.5 rounded-full text-[10px] md:text-xs ${
                     activeTab === tab ? 'bg-black text-white' : 'bg-neutral-100 text-neutral-600'
                   }`}>
                     {count}
@@ -766,7 +773,7 @@ export function GalleryManager() {
       </div>
 
       {/* Gallery Grid */}
-      <main className="container mx-auto px-6 py-12">
+      <main className="container mx-auto px-4 md:px-6 py-6 md:py-12">
         {filteredArtworks.length === 0 ? (
           <div className="text-center py-16 text-neutral-500">
             <ImageIcon size={48} className="mx-auto mb-4 opacity-50" />
@@ -885,10 +892,10 @@ export function GalleryManager() {
 
       {/* Edit Modal */}
       {isModalOpen && editingArtwork && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-neutral-100 px-6 py-4 flex items-center justify-between">
-              <h2 className="font-serif text-xl">
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-2 md:p-4">
+          <div className="bg-white w-full max-w-3xl max-h-[95vh] md:max-h-[90vh] overflow-y-auto rounded-lg md:rounded-none">
+            <div className="sticky top-0 bg-white border-b border-neutral-100 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
+              <h2 className="font-serif text-lg md:text-xl">
                 {editingArtwork.isNew ? 'Nytt konstverk' : 'Redigera konstverk'}
               </h2>
               <button 
@@ -899,7 +906,7 @@ export function GalleryManager() {
               </button>
             </div>
             
-            <div className="p-6 space-y-6">
+            <div className="p-4 md:p-6 space-y-4 md:space-y-6">
               {/* Image Upload */}
               <div>
                 <label className="block text-xs uppercase tracking-wider text-neutral-500 mb-2">

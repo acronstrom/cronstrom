@@ -21,30 +21,30 @@ export function PagesManager() {
     <div className="min-h-screen bg-neutral-100">
       {/* Header */}
       <header className="bg-white border-b border-neutral-200">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 md:gap-4">
             <Link 
               to="/admin" 
-              className="flex items-center gap-2 border border-neutral-300 text-neutral-600 px-4 py-3 text-sm uppercase tracking-wider hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
+              className="flex items-center gap-1 md:gap-2 border border-neutral-300 text-neutral-600 px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm uppercase tracking-wider hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              Tillbaka
+              <span className="hidden sm:inline">Tillbaka</span>
             </Link>
-            <h1 className="text-xl font-serif">Hantera Sidor</h1>
+            <h1 className="text-lg md:text-xl font-serif">Sidor</h1>
           </div>
           <Link
             to="/"
             target="_blank"
-            className="flex items-center gap-2 border border-neutral-300 text-neutral-600 px-4 py-3 text-sm uppercase tracking-wider hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
+            className="flex items-center gap-1 md:gap-2 border border-neutral-300 text-neutral-600 px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm uppercase tracking-wider hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
           >
             <ExternalLink className="w-4 h-4" />
-            Visa webbplats
+            <span className="hidden sm:inline">Visa webbplats</span>
           </Link>
         </div>
       </header>
 
       {/* Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+      <main className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-8 space-y-4 md:space-y-8">
         {/* Artist Bio */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <div className="p-4 border-b border-neutral-200">

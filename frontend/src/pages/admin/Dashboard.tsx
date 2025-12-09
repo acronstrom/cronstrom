@@ -70,18 +70,18 @@ export function AdminDashboard() {
     <div className="min-h-screen bg-neutral-50">
       {/* Header */}
       <header className="bg-white border-b border-neutral-200 sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <LayoutDashboard className="text-neutral-400" size={24} />
+        <div className="container mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 md:gap-4">
+            <LayoutDashboard className="text-neutral-400 hidden sm:block" size={24} />
             <div>
-              <h1 className="font-serif text-xl">Adminpanel</h1>
-              <p className="text-xs text-neutral-500">cronstrom.net</p>
+              <h1 className="font-serif text-lg md:text-xl">Adminpanel</h1>
+              <p className="text-xs text-neutral-500 hidden sm:block">cronstrom.net</p>
             </div>
           </div>
           
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-3">
-              <div className="text-right">
+          <div className="flex items-center gap-2 md:gap-6">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="text-right hidden sm:block">
                 <p className="text-sm font-medium">{user?.name}</p>
                 <p className="text-xs text-neutral-500">{user?.role}</p>
               </div>
@@ -98,10 +98,10 @@ export function AdminDashboard() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-12">
-        <div className="mb-12">
-          <h2 className="text-3xl font-serif mb-2">Välkommen, {user?.name?.split(' ')[0]}!</h2>
-          <p className="text-neutral-500">Vad vill du göra idag?</p>
+      <main className="container mx-auto px-4 md:px-6 py-6 md:py-12">
+        <div className="mb-6 md:mb-12">
+          <h2 className="text-2xl md:text-3xl font-serif mb-2">Välkommen, {user?.name?.split(' ')[0]}!</h2>
+          <p className="text-neutral-500 text-sm md:text-base">Vad vill du göra idag?</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

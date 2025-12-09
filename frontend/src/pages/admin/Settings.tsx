@@ -133,46 +133,51 @@ export function AdminSettings() {
     <div className="min-h-screen bg-neutral-50">
       {/* Header */}
       <header className="bg-white border-b border-neutral-200 sticky top-0 z-40">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link 
-              to="/admin" 
-              className="flex items-center gap-2 border border-neutral-300 text-neutral-600 px-4 py-3 text-sm uppercase tracking-wider hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
-            >
-              <ArrowLeft size={18} />
-              Tillbaka
-            </Link>
-            <div>
-              <h1 className="font-serif text-xl">Inställningar</h1>
-              <p className="text-xs text-neutral-500">Hantera webbplatsen och din profil</p>
+        <div className="container mx-auto px-4 md:px-6 py-3 md:py-4">
+          {/* Top row - navigation */}
+          <div className="flex items-center justify-between mb-2 md:mb-0">
+            <div className="flex items-center gap-2 md:gap-4">
+              <Link 
+                to="/admin" 
+                className="flex items-center gap-1 md:gap-2 border border-neutral-300 text-neutral-600 px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm uppercase tracking-wider hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
+              >
+                <ArrowLeft size={16} className="md:w-[18px] md:h-[18px]" />
+                <span className="hidden sm:inline">Tillbaka</span>
+              </Link>
+              <div>
+                <h1 className="font-serif text-lg md:text-xl">Inställningar</h1>
+                <p className="text-[10px] md:text-xs text-neutral-500 hidden sm:block">Hantera webbplatsen</p>
+              </div>
+              <span className={`text-[10px] md:text-xs px-1.5 md:px-2 py-0.5 md:py-1 rounded-full ${dbStatus === 'connected' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                {dbStatus === 'connected' ? '🟢 DB' : '🔴'}
+              </span>
             </div>
-            <span className={`text-xs px-2 py-1 rounded-full ${dbStatus === 'connected' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-              DB: {dbStatus === 'connected' ? 'Ansluten' : 'Ej ansluten'}
-            </span>
-          </div>
-          
-          <div className="flex items-center gap-3">
+            
             <Link
               to="/"
               target="_blank"
-              className="flex items-center gap-2 border border-neutral-300 text-neutral-600 px-4 py-3 text-sm uppercase tracking-wider hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
+              className="flex items-center gap-1 md:gap-2 border border-neutral-300 text-neutral-600 px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm uppercase tracking-wider hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
             >
-              <ExternalLink size={18} />
-              Visa webbplats
+              <ExternalLink size={16} className="md:w-[18px] md:h-[18px]" />
+              <span className="hidden sm:inline">Visa webbplats</span>
             </Link>
+          </div>
+          
+          {/* Save button row */}
+          <div className="flex items-center justify-end gap-2 md:gap-3">
             <button
               onClick={handleSave}
               disabled={isSaving || dbStatus !== 'connected'}
-              className="flex items-center gap-2 bg-black text-white px-6 py-3 text-sm uppercase tracking-wider hover:bg-neutral-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded"
+              className="flex items-center gap-1 md:gap-2 bg-black text-white px-3 md:px-6 py-2 md:py-3 text-xs md:text-sm uppercase tracking-wider hover:bg-neutral-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded"
             >
-              {isSaving ? <RefreshCcw size={18} className="animate-spin" /> : <Save size={18} />}
+              {isSaving ? <RefreshCcw size={16} className="animate-spin" /> : <Save size={16} />}
               {isSaving ? 'Sparar...' : 'Spara'}
             </button>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-6 py-12">
+      <main className="container mx-auto px-4 md:px-6 py-6 md:py-12">
         {error && (
           <div className="mb-6 bg-red-100 border border-red-200 text-red-700 px-4 py-3 text-sm flex items-center gap-2">
             <AlertTriangle size={18} />
