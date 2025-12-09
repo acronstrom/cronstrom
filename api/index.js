@@ -617,6 +617,141 @@ app.post('/api/upload', auth, async (req, res) => {
   }
 });
 
+// MIGRATE IMAGES FROM URL - Downloads image from URL and uploads to Blob
+app.post('/api/migrate-image', auth, async (req, res) => {
+  try {
+    const { put } = require('@vercel/blob');
+    const { imageUrl, title, medium, dimensions, year, category, description } = req.body;
+    
+    if (!imageUrl) {
+      return res.status(400).json({ error: 'No image URL provided' });
+    }
+    
+    // Fetch image from URL
+    console.log('Fetching image from:', imageUrl);
+    const response = await fetch(imageUrl);
+    
+    if (!response.ok) {
+      return res.status(400).json({ error: `Failed to fetch image: ${response.status}` });
+    }
+    
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    
+    console.log('Image size:', buffer.length, 'bytes');
+    
+    // Generate filename from URL or title
+    const urlParts = imageUrl.split('/');
+    const originalFilename = urlParts[urlParts.length - 1].split('?')[0];
+    const filename = `glasfusing-${Date.now()}-${originalFilename}`;
+    
+    // Upload to Vercel Blob
+    const blob = await put(filename, buffer, {
+      access: 'public',
+      contentType: contentType
+    });
+    
+    console.log('Uploaded to blob:', blob.url);
+    
+    // Create artwork entry in database if db is connected
+    if (dbConnected && sql) {
+      await initDB();
+      const { rows } = await sql`
+        INSERT INTO artworks (title, medium, dimensions, year, image_url, category, description, status)
+        VALUES (${title || 'Glasfusing verk'}, ${medium || 'Glasfusing'}, ${dimensions || ''}, ${year || ''}, ${blob.url}, ${category || 'Glasfusing'}, ${description || ''}, 'available')
+        RETURNING *
+      `;
+      
+      res.json({ 
+        success: true, 
+        blobUrl: blob.url, 
+        artwork: rows[0],
+        message: 'Image migrated and artwork created' 
+      });
+    } else {
+      res.json({ 
+        success: true, 
+        blobUrl: blob.url, 
+        message: 'Image migrated (database not connected)' 
+      });
+    }
+  } catch (err) {
+    console.error('Migration error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// BATCH MIGRATE IMAGES - Migrate multiple images at once
+app.post('/api/migrate-images', auth, async (req, res) => {
+  try {
+    const { put } = require('@vercel/blob');
+    const { images } = req.body;
+    
+    if (!images || !Array.isArray(images)) {
+      return res.status(400).json({ error: 'No images array provided' });
+    }
+    
+    const results = [];
+    
+    for (const img of images) {
+      try {
+        const { imageUrl, title, medium, dimensions, year, category, description } = img;
+        
+        if (!imageUrl) {
+          results.push({ error: 'No URL provided', original: img });
+          continue;
+        }
+        
+        // Fetch image
+        const response = await fetch(imageUrl);
+        if (!response.ok) {
+          results.push({ error: `Failed to fetch: ${response.status}`, original: img });
+          continue;
+        }
+        
+        const contentType = response.headers.get('content-type') || 'image/jpeg';
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        
+        // Generate filename
+        const urlParts = imageUrl.split('/');
+        const originalFilename = urlParts[urlParts.length - 1].split('?')[0];
+        const filename = `glasfusing-${Date.now()}-${originalFilename}`;
+        
+        // Upload to Blob
+        const blob = await put(filename, buffer, {
+          access: 'public',
+          contentType: contentType
+        });
+        
+        // Create artwork in DB
+        if (dbConnected && sql) {
+          await initDB();
+          const { rows } = await sql`
+            INSERT INTO artworks (title, medium, dimensions, year, image_url, category, description, status)
+            VALUES (${title || 'Glasfusing verk'}, ${medium || 'Glasfusing'}, ${dimensions || ''}, ${year || ''}, ${blob.url}, ${category || 'Glasfusing'}, ${description || ''}, 'available')
+            RETURNING *
+          `;
+          results.push({ success: true, blobUrl: blob.url, artwork: rows[0] });
+        } else {
+          results.push({ success: true, blobUrl: blob.url });
+        }
+      } catch (imgErr) {
+        results.push({ error: imgErr.message, original: img });
+      }
+    }
+    
+    res.json({ 
+      message: `Migrated ${results.filter(r => r.success).length}/${images.length} images`,
+      results 
+    });
+  } catch (err) {
+    console.error('Batch migration error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // SETTINGS ROUTES
 // Public settings endpoint - no auth required for reading
 app.get('/api/settings', async (req, res) => {
