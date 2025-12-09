@@ -694,7 +694,7 @@ export function GalleryManager() {
       {isReorderMode && (
         <div className="bg-amber-50 border-b border-amber-200 px-6 py-3">
           <p className="container mx-auto text-sm text-amber-800">
-            <strong>Sorteringsläge:</strong> Använd pilarna för att flytta verk upp eller ner. Klicka "Spara ordning" när du är klar.
+            <strong>Sorteringsläge:</strong> Dra och släpp bilderna för att ändra ordning. Klicka "Spara ordning" när du är klar.
           </p>
         </div>
       )}
@@ -738,10 +738,13 @@ export function GalleryManager() {
             <p>Inga verk i denna kategori</p>
           </div>
         ) : (
-        <div className={isReorderMode ? "space-y-2" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"}>
+        <div className={isReorderMode 
+          ? "grid grid-cols-2 md:grid-cols-3 gap-4" 
+          : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+        }>
           {filteredArtworks.map((artwork, index) => (
             isReorderMode ? (
-              /* Reorder Mode - List view with drag & drop */
+              /* Reorder Mode - Grid view with drag & drop thumbnails */
               <div 
                 key={artwork.id} 
                 draggable
@@ -750,59 +753,44 @@ export function GalleryManager() {
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, index)}
                 onDragEnd={handleDragEnd}
-                className={`bg-white border-2 flex items-center gap-4 p-3 transition-all cursor-grab active:cursor-grabbing ${
+                className={`relative bg-white border-2 rounded-lg overflow-hidden transition-all cursor-grab active:cursor-grabbing select-none ${
                   draggedIndex === index 
-                    ? 'opacity-50 border-neutral-400' 
+                    ? 'opacity-50 border-neutral-400 scale-95' 
                     : dragOverIndex === index 
-                    ? 'border-blue-500 bg-blue-50' 
-                    : 'border-neutral-200 hover:bg-neutral-50'
+                    ? 'border-blue-500 ring-2 ring-blue-200 scale-105' 
+                    : 'border-neutral-200 hover:border-neutral-400 hover:shadow-lg'
                 }`}
               >
-                <div 
-                  className="flex items-center justify-center p-2 hover:bg-neutral-100 rounded cursor-grab"
-                  title="Dra för att flytta"
-                >
-                  <GripVertical size={20} className="text-neutral-400" />
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <button
-                    onClick={() => moveUp(index)}
-                    disabled={index === 0}
-                    className="p-1.5 hover:bg-neutral-200 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                    title="Flytta upp"
-                  >
-                    <ArrowUp size={16} />
-                  </button>
-                  <button
-                    onClick={() => moveDown(index)}
-                    disabled={index === artworks.length - 1}
-                    className="p-1.5 hover:bg-neutral-200 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                    title="Flytta ner"
-                  >
-                    <ArrowDown size={16} />
-                  </button>
+                {/* Order number badge */}
+                <div className="absolute top-2 left-2 z-10 bg-black/70 text-white text-xs font-mono px-2 py-1 rounded">
+                  {index + 1}
                 </div>
                 
-                <span className="text-neutral-400 text-sm font-mono w-8">{index + 1}</span>
+                {/* Drag handle indicator */}
+                <div className="absolute top-2 right-2 z-10 bg-white/90 p-1.5 rounded shadow">
+                  <GripVertical size={16} className="text-neutral-500" />
+                </div>
                 
-                <div className="w-16 h-16 bg-neutral-100 flex-shrink-0 overflow-hidden rounded">
+                {/* Thumbnail */}
+                <div className="aspect-square bg-neutral-100">
                   {artwork.imageUrl ? (
                     <img 
                       src={artwork.imageUrl} 
                       alt={artwork.title}
                       className="w-full h-full object-cover pointer-events-none"
+                      draggable={false}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <ImageIcon size={24} className="text-neutral-300" />
+                      <ImageIcon size={32} className="text-neutral-300" />
                     </div>
                   )}
                 </div>
                 
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-serif text-lg truncate">{artwork.title}</h3>
-                  <p className="text-sm text-neutral-500">{artwork.category} • {artwork.year}</p>
+                {/* Title */}
+                <div className="p-2 bg-white">
+                  <p className="text-sm font-medium truncate">{artwork.title}</p>
+                  <p className="text-xs text-neutral-400">{artwork.category}</p>
                 </div>
               </div>
             ) : (
