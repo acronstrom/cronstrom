@@ -200,119 +200,115 @@ export function GalleryManager() {
 
   const [isUploading, setIsUploading] = useState(false);
   const [isMigrating, setIsMigrating] = useState(false);
+  const [migrationProgress, setMigrationProgress] = useState('');
 
-  // Glasfusing images to migrate from WordPress
-  const glasfusingImagesToMigrate = [
-    {
-      imageUrl: 'https://cronstrom.net/wp-content/uploads/2024/12/Bla-bordsdekoration--scaled.jpg',
-      title: 'Blå bordsdekoration',
-      medium: 'Glasfusing',
-      dimensions: '',
-      year: '2024',
-      category: 'Glasfusing',
-      description: 'Blå bordsdekoration i glasfusing'
-    },
-    {
-      imageUrl: 'https://cronstrom.net/wp-content/uploads/2024/12/Blarott-fat.jpg',
-      title: 'Blårött fat',
-      medium: 'Glasfusing',
-      dimensions: '',
-      year: '2024',
-      category: 'Glasfusing',
-      description: 'Fat i blått och rött glas'
-    },
-    {
-      imageUrl: 'https://cronstrom.net/wp-content/uploads/2024/12/IMG_8533-scaled.jpg',
-      title: 'Glasfusing komposition',
-      medium: 'Glasfusing',
-      dimensions: '',
-      year: '2024',
-      category: 'Glasfusing',
-      description: 'Glasfusing komposition'
-    },
-    {
-      imageUrl: 'https://cronstrom.net/wp-content/uploads/2024/12/svartvitt-fat-scaled.jpg',
-      title: 'Svartvitt fat',
-      medium: 'Glasfusing',
-      dimensions: '',
-      year: '2024',
-      category: 'Glasfusing',
-      description: 'Svartvitt fat i glasfusing'
-    },
-    {
-      imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/20140129220455.jpg',
-      title: 'Glassmycke 1',
-      medium: 'Glasfusing',
-      dimensions: '',
-      year: '2014',
-      category: 'Glasfusing',
-      description: 'Handgjort glassmycke'
-    },
-    {
-      imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/20140129221355.jpg',
-      title: 'Glassmycke 2',
-      medium: 'Glasfusing',
-      dimensions: '',
-      year: '2014',
-      category: 'Glasfusing',
-      description: 'Glassmycke i regnbågens färger'
-    },
-    {
-      imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/20140129221102.jpg',
-      title: 'Glassmycke 3',
-      medium: 'Glasfusing',
-      dimensions: '',
-      year: '2014',
-      category: 'Glasfusing',
-      description: 'Unik glasfusing kreation'
-    }
+  // ALL images to migrate from WordPress
+  const allImagesToMigrate = [
+    // === GALLERI (15 images) ===
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2022/04/IMG_0252-768x711.jpg', title: 'Vita gäss', medium: 'Akvarell', dimensions: '40 x 50 cm', year: '2022', category: 'Galleri', description: 'Vita gäss i rörelse mot en öppen himmel.' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2023/03/Bergetl-768x507.jpg', title: 'Berget', medium: 'Akvarell', dimensions: '50 x 35 cm', year: '2023', category: 'Galleri', description: 'Ett dramatiskt bergslandskap i nordisk anda.' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2023/03/Vita-gass-lll-720x1024.jpg', title: 'Vita gäss III', medium: 'Akvarell', dimensions: '60 x 80 cm', year: '2023', category: 'Galleri', description: 'Den tredje i serien av vita gäss.' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2023/03/samtal-pagar-768x996.jpg', title: 'Samtal pågår', medium: 'Akvarell', dimensions: '45 x 60 cm', year: '2023', category: 'Galleri', description: 'Ett ögonblick av kommunikation fångat i färg.' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2024/03/Tar-sjovagen-kopia-768x776.jpg', title: 'Tar sjövägen', medium: 'Akvarell', dimensions: '50 x 50 cm', year: '2024', category: 'Galleri', description: 'En resa över vatten, inspirerad av skärgårdens rytm.' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2024/03/Vem-dar_-768x732.png', title: 'Vem där?', medium: 'Akvarell', dimensions: '40 x 40 cm', year: '2024', category: 'Galleri', description: 'En fråga ställd genom penseldraget.' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2024/03/Vantan-768x1023.png', title: 'Väntan', medium: 'Akvarell', dimensions: '55 x 70 cm', year: '2024', category: 'Galleri', description: 'Tålamod och stillhet fångat i ett ögonblick.' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2024/03/kappsegling-659x1024.png', title: 'Kappsegling', medium: 'Akvarell', dimensions: '45 x 65 cm', year: '2024', category: 'Galleri', description: 'Seglingens spänning och vindens kraft.' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2024/03/Tatatat-ll-1-712x1024.png', title: 'Tätatät', medium: 'Akvarell', dimensions: '50 x 70 cm', year: '2024', category: 'Galleri', description: 'Närhet och samhörighet uttryckt i form och färg.' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2024/03/Vattenfall-768x747.png', title: 'Vattenfall', medium: 'Akvarell', dimensions: '50 x 50 cm', year: '2024', category: 'Galleri', description: 'Vattnets kraft och rörelse i naturens magi.' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2025/03/Dit-nabben-pekar--768x588.jpg', title: 'Dit näbben pekar', medium: 'Akvarell', dimensions: '45 x 35 cm', year: '2025', category: 'Galleri', description: 'Fåglarnas riktning och instinkt.' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2025/03/Fagelskadare--768x773.jpg', title: 'Fågelskådare', medium: 'Akvarell', dimensions: '50 x 50 cm', year: '2025', category: 'Galleri', description: 'En hyllning till naturens observatörer.' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2025/03/Hanger-ihop-768x984.jpg', title: 'Hänger ihop', medium: 'Akvarell', dimensions: '55 x 70 cm', year: '2025', category: 'Galleri', description: 'Samband och samhörighet i naturens värld.' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2025/03/skogsglanta-768x779.jpg', title: 'Skogsglänta', medium: 'Akvarell', dimensions: '50 x 50 cm', year: '2025', category: 'Galleri', description: 'Ljuset som bryter igenom skogens tak.' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2025/03/Soligt-768x741.jpg', title: 'Soligt', medium: 'Akvarell', dimensions: '45 x 45 cm', year: '2025', category: 'Galleri', description: 'Solens värme och ljus i akvarellens transparens.' },
+    
+    // === GLASFUSING (7 images) ===
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2024/12/Bla-bordsdekoration--scaled.jpg', title: 'Blå bordsdekoration', medium: 'Glasfusing', dimensions: '', year: '2024', category: 'Glasfusing', description: 'Blå bordsdekoration i glasfusing' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2024/12/Blarott-fat.jpg', title: 'Blårött fat', medium: 'Glasfusing', dimensions: '', year: '2024', category: 'Glasfusing', description: 'Fat i blått och rött glas' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2024/12/IMG_8533-scaled.jpg', title: 'Glasfusing komposition', medium: 'Glasfusing', dimensions: '', year: '2024', category: 'Glasfusing', description: 'Glasfusing komposition' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2024/12/svartvitt-fat-scaled.jpg', title: 'Svartvitt fat', medium: 'Glasfusing', dimensions: '', year: '2024', category: 'Glasfusing', description: 'Svartvitt fat i glasfusing' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/20140129220455.jpg', title: 'Glassmycke 1', medium: 'Glasfusing', dimensions: '', year: '2014', category: 'Glasfusing', description: 'Handgjort glassmycke' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/20140129221355.jpg', title: 'Glassmycke 2', medium: 'Glasfusing', dimensions: '', year: '2014', category: 'Glasfusing', description: 'Glassmycke i regnbågens färger' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/20140129221102.jpg', title: 'Glassmycke 3', medium: 'Glasfusing', dimensions: '', year: '2014', category: 'Glasfusing', description: 'Unik glasfusing kreation' },
+    
+    // === NOBEL 2013 - Ekonomipriset (6 images) ===
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/fama-diploma.jpg', title: 'Eugene F. Fama Nobeldiplom', medium: 'Akvarell', dimensions: '', year: '2013', category: 'Nobel', description: 'Nobeldiplom 2013 - Ekonomipriset' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/hansen-diploma.jpg', title: 'Lars Peter Hansen Nobeldiplom', medium: 'Akvarell', dimensions: '', year: '2013', category: 'Nobel', description: 'Nobeldiplom 2013 - Ekonomipriset' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/shiller-diploma.jpg', title: 'Robert J. Shiller Nobeldiplom', medium: 'Akvarell', dimensions: '', year: '2013', category: 'Nobel', description: 'Nobeldiplom 2013 - Ekonomipriset' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/robertj.jpg', title: 'Lena med Robert J. Shiller', medium: 'Fotografi', dimensions: '', year: '2013', category: 'Nobel', description: 'Från Nobelceremonin 2013' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/al-hansen-award.jpg', title: 'Lars Peter Hansen', medium: 'Fotografi', dimensions: '', year: '2013', category: 'Nobel', description: '© Nobel Media AB 2013' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/EugeneF.jpg', title: 'Eugene F. Fama med Lena', medium: 'Fotografi', dimensions: '', year: '2013', category: 'Nobel', description: 'Från Nobelceremonin 2013' },
+    
+    // === NOBEL 2012 - Fysikpriset (4 images) ===
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/wineland_diploma.jpg', title: 'David J. Wineland Nobeldiplom', medium: 'Akvarell', dimensions: '', year: '2012', category: 'Nobel', description: 'Nobeldiplom 2012 - Fysikpriset' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/haroche_diploma.jpg', title: 'Serge Haroche Nobeldiplom', medium: 'Akvarell', dimensions: '', year: '2012', category: 'Nobel', description: 'Nobeldiplom 2012 - Fysikpriset' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/Lena-Haroche.jpg', title: 'Lena med Serge Haroche', medium: 'Fotografi', dimensions: '', year: '2012', category: 'Nobel', description: 'Från Nobelceremonin 2012' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/Lena-Wineland.jpg', title: 'David J. Wineland med Lena', medium: 'Fotografi', dimensions: '', year: '2012', category: 'Nobel', description: 'Från Nobelceremonin 2012' },
+    
+    // === NOBEL 2011 - Kemipriset (3 images) ===
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/nobel.png', title: 'Dan Shechtman Nobeldiplom', medium: 'Akvarell', dimensions: '', year: '2011', category: 'Nobel', description: 'Nobeldiplom 2011 - Kemipriset - Flyga drake' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/chestmanprice.jpg', title: 'Nobelceremonin 2011', medium: 'Fotografi', dimensions: '', year: '2011', category: 'Nobel', description: 'Nobelceremonin 2011' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/lena_chestman.jpg', title: 'Lena med Dan Shechtman', medium: 'Fotografi', dimensions: '', year: '2011', category: 'Nobel', description: 'Från Nobelceremonin 2011' },
   ];
 
-  // Migrate glasfusing images from WordPress to Vercel Blob
-  const migrateGlasfusingImages = async () => {
+  // Migrate ALL images from WordPress to Vercel Blob (one at a time to avoid timeout)
+  const migrateAllImages = async () => {
     if (!useDatabase) {
       alert('Databasen måste vara ansluten för att migrera bilder.');
       return;
     }
     
-    // Check if glasfusing images already exist
-    const existingGlasfusing = artworks.filter(a => a.category === 'Glasfusing');
-    if (existingGlasfusing.length > 0) {
-      const confirm = window.confirm(
-        `Det finns redan ${existingGlasfusing.length} glasfusing-verk i databasen.\n\nVill du lägga till ${glasfusingImagesToMigrate.length} till?`
-      );
-      if (!confirm) return;
-    }
+    const confirm = window.confirm(
+      `Detta kommer att migrera ${allImagesToMigrate.length} bilder från WordPress till Vercel Blob.\n\n` +
+      `• 15 Galleri-bilder\n• 7 Glasfusing-bilder\n• 13 Nobel-bilder\n\n` +
+      `Det tar ca 1-2 minuter. Fortsätta?`
+    );
+    if (!confirm) return;
     
     setIsMigrating(true);
+    setMigrationProgress('Startar...');
+    const token = localStorage.getItem('token');
+    let successCount = 0;
+    let failCount = 0;
     
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/migrate-images`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'x-auth-token': token } : {})
-        },
-        body: JSON.stringify({ images: glasfusingImagesToMigrate })
-      });
+    // Migrate one image at a time to avoid timeout
+    for (let i = 0; i < allImagesToMigrate.length; i++) {
+      const img = allImagesToMigrate[i];
+      setMigrationProgress(`${i + 1}/${allImagesToMigrate.length}: ${img.title}`);
       
-      if (!response.ok) {
-        throw new Error(`Migration failed: ${response.status}`);
+      try {
+        console.log(`Migrating ${i + 1}/${allImagesToMigrate.length}: ${img.title}`);
+        
+        const response = await fetch(`${API_BASE}/migrate-image`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'x-auth-token': token } : {})
+          },
+          body: JSON.stringify(img)
+        });
+        
+        if (response.ok) {
+          successCount++;
+          console.log(`✓ ${img.title} migrated successfully`);
+        } else {
+          failCount++;
+          console.error(`✗ ${img.title} failed: ${response.status}`);
+        }
+      } catch (err) {
+        failCount++;
+        console.error(`✗ ${img.title} error:`, err);
       }
       
-      const result = await response.json();
-      alert(`Migration klar!\n${result.message}`);
-      
-      // Reload artworks to show the new ones
-      await loadArtworks();
-      
-    } catch (err: any) {
-      console.error('Migration error:', err);
-      alert(`Migration misslyckades: ${err.message}`);
-    } finally {
-      setIsMigrating(false);
+      // Small delay between requests
+      await new Promise(resolve => setTimeout(resolve, 300));
     }
+    
+    setIsMigrating(false);
+    setMigrationProgress('');
+    alert(`Migration klar!\n\n✓ ${successCount} lyckades\n✗ ${failCount} misslyckades`);
+    
+    // Reload artworks to show the new ones
+    await loadArtworks();
   };
 
   // Compress image before upload - aggressive compression for Vercel's 4.5MB limit
@@ -619,20 +615,20 @@ export function GalleryManager() {
               <>
                 {useDatabase && (
                   <button
-                    onClick={migrateGlasfusingImages}
+                    onClick={migrateAllImages}
                     disabled={isMigrating}
                     className="flex items-center gap-2 border border-cyan-500 text-cyan-700 px-4 py-3 text-sm uppercase tracking-wider hover:bg-cyan-50 transition-colors disabled:opacity-50"
-                    title="Migrera glasfusing från WordPress"
+                    title="Migrera alla bilder från WordPress till Vercel Blob"
                   >
                     {isMigrating ? (
                       <>
                         <Loader2 size={18} className="animate-spin" />
-                        Migrerar...
+                        <span className="max-w-[200px] truncate">{migrationProgress || 'Migrerar...'}</span>
                       </>
                     ) : (
                       <>
                         <Upload size={18} />
-                        Migrera Glasfusing
+                        Migrera Bilder (35)
                       </>
                     )}
                   </button>
