@@ -50,6 +50,19 @@ export function Glasfusing() {
   const [glasfusingArtworks, setGlasfusingArtworks] = useState<Artwork[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
+  // Convert fallback images to Artwork format
+  const fallbackArtworks: Artwork[] = fallbackImages.map((img, idx) => ({
+    id: `fallback-${idx}`,
+    title: img.alt,
+    medium: 'Glasfusing',
+    dimensions: '',
+    year: '',
+    imageUrl: img.src,
+    category: 'Glasfusing',
+    description: img.caption || '',
+    status: 'available'
+  }));
+
   // Fetch glasfusing artworks from database
   useEffect(() => {
     const loadGlasfusingArtworks = async () => {
@@ -57,20 +70,35 @@ export function Glasfusing() {
         const response = await fetch(`${API_BASE}/artworks`);
         if (response.ok) {
           const data = await response.json();
-          const glasItems = data.filter((a: Artwork) => a.category === 'Glasfusing');
+          // API returns { artworks: [...] } or just [...]
+          const allArtworks = data.artworks || data || [];
+          const glasItems = allArtworks
+            .filter((a: any) => a.category === 'Glasfusing')
+            .map((a: any) => ({
+              id: a.id?.toString() || '',
+              title: a.title || '',
+              medium: a.medium || 'Glasfusing',
+              dimensions: a.dimensions || '',
+              year: a.year || '',
+              imageUrl: a.image_url || a.imageUrl || '',
+              category: a.category || 'Glasfusing',
+              description: a.description || '',
+              status: a.status || 'available'
+            }));
+          
           if (glasItems.length > 0) {
             setGlasfusingArtworks(glasItems);
           } else {
-            // Use local data as fallback
-            setGlasfusingArtworks(localArtworks.filter(a => a.category === 'Glasfusing'));
+            // Use fallback images if no glasfusing in database
+            setGlasfusingArtworks(fallbackArtworks);
           }
         } else {
-          // Fallback to local data
-          setGlasfusingArtworks(localArtworks.filter(a => a.category === 'Glasfusing'));
+          // Fallback to static images
+          setGlasfusingArtworks(fallbackArtworks);
         }
       } catch (err) {
-        console.log('Using local glasfusing data');
-        setGlasfusingArtworks(localArtworks.filter(a => a.category === 'Glasfusing'));
+        console.log('Using fallback glasfusing images');
+        setGlasfusingArtworks(fallbackArtworks);
       } finally {
         setIsLoading(false);
       }
