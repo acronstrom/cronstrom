@@ -235,8 +235,12 @@ export function EducationManager() {
       <header className="bg-white border-b border-neutral-200">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link to="/admin" className="text-neutral-500 hover:text-neutral-900 transition-colors">
-              <ArrowLeft className="w-5 h-5" />
+            <Link 
+              to="/admin" 
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-neutral-600 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Tillbaka
             </Link>
             <h1 className="text-xl font-serif">Hantera Utbildning</h1>
             <span className={`text-xs px-2 py-1 rounded-full ${dbStatus === 'connected' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>

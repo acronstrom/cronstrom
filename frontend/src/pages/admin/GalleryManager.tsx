@@ -614,8 +614,12 @@ export function GalleryManager() {
       <header className="bg-white border-b border-neutral-200 sticky top-0 z-40">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link to="/admin" className="p-2 hover:bg-neutral-100 rounded-full transition-colors">
-              <ArrowLeft size={20} />
+            <Link 
+              to="/admin" 
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-neutral-600 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition-colors"
+            >
+              <ArrowLeft size={18} />
+              Tillbaka
             </Link>
             <div>
               <h1 className="font-serif text-xl">Galleri</h1>
