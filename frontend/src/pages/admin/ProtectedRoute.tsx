@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { AdminLayout } from '../../components/admin/AdminLayout';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -32,6 +33,6 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  return <>{children}</>;
+  return <AdminLayout>{children}</AdminLayout>;
 }
 
