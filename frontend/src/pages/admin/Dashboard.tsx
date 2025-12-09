@@ -19,35 +19,50 @@ export function AdminDashboard() {
       description: 'Hantera konstverk och bilder',
       icon: Image, 
       path: '/admin/gallery',
-      color: 'bg-blue-500/10 text-blue-500'
+      gradient: 'from-blue-500 to-blue-600',
+      bgHover: 'hover:bg-blue-50',
+      iconBg: 'bg-blue-500',
+      border: 'border-blue-200 hover:border-blue-400'
     },
     { 
       name: 'Utställningar', 
       description: 'Lägg till och redigera utställningar',
       icon: Calendar, 
       path: '/admin/exhibitions',
-      color: 'bg-purple-500/10 text-purple-500'
+      gradient: 'from-purple-500 to-purple-600',
+      bgHover: 'hover:bg-purple-50',
+      iconBg: 'bg-purple-500',
+      border: 'border-purple-200 hover:border-purple-400'
     },
     { 
       name: 'Utbildning', 
       description: 'Hantera utbildningsinformation',
       icon: GraduationCap, 
       path: '/admin/education',
-      color: 'bg-green-500/10 text-green-500'
+      gradient: 'from-emerald-500 to-emerald-600',
+      bgHover: 'hover:bg-emerald-50',
+      iconBg: 'bg-emerald-500',
+      border: 'border-emerald-200 hover:border-emerald-400'
     },
     { 
       name: 'Sidor', 
       description: 'Redigera sidinnehåll och texter',
       icon: FileText, 
       path: '/admin/pages',
-      color: 'bg-orange-500/10 text-orange-500'
+      gradient: 'from-orange-500 to-orange-600',
+      bgHover: 'hover:bg-orange-50',
+      iconBg: 'bg-orange-500',
+      border: 'border-orange-200 hover:border-orange-400'
     },
     { 
       name: 'Inställningar', 
       description: 'Webbplatsinställningar och profil',
       icon: Settings, 
       path: '/admin/settings',
-      color: 'bg-neutral-500/10 text-neutral-500'
+      gradient: 'from-neutral-600 to-neutral-700',
+      bgHover: 'hover:bg-neutral-100',
+      iconBg: 'bg-neutral-600',
+      border: 'border-neutral-300 hover:border-neutral-400'
     },
   ];
 
@@ -97,36 +112,50 @@ export function AdminDashboard() {
             <Link
               key={item.path}
               to={item.path}
-              className="group bg-white p-8 border border-neutral-100 hover:border-neutral-300 hover:shadow-lg transition-all duration-300"
+              className={`group relative bg-white rounded-xl p-6 border-2 ${item.border} ${item.bgHover} shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden`}
             >
-              <div className={`w-12 h-12 ${item.color} rounded-lg flex items-center justify-center mb-6`}>
-                <item.icon size={24} />
+              {/* Gradient accent bar at top */}
+              <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${item.gradient}`} />
+              
+              <div className="flex items-start gap-4">
+                {/* Icon */}
+                <div className={`${item.iconBg} w-14 h-14 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                  <item.icon size={26} className="text-white" />
+                </div>
+                
+                {/* Text */}
+                <div className="flex-1 pt-1">
+                  <h3 className="font-semibold text-lg text-neutral-800 group-hover:text-neutral-900 transition-colors flex items-center gap-2">
+                    {item.name}
+                    <span className="text-neutral-300 group-hover:text-neutral-400 group-hover:translate-x-1 transition-all">→</span>
+                  </h3>
+                  <p className="text-neutral-500 text-sm mt-1">{item.description}</p>
+                </div>
               </div>
-              <h3 className="font-serif text-xl mb-2 group-hover:text-neutral-600 transition-colors">
-                {item.name}
-              </h3>
-              <p className="text-neutral-500 text-sm">{item.description}</p>
             </Link>
           ))}
         </div>
 
         {/* Quick Stats */}
-        <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="bg-white p-6 border border-neutral-100">
-            <p className="text-3xl font-serif mb-1">7</p>
-            <p className="text-sm text-neutral-500">Konstverk</p>
-          </div>
-          <div className="bg-white p-6 border border-neutral-100">
-            <p className="text-3xl font-serif mb-1">6</p>
-            <p className="text-sm text-neutral-500">Utställningar</p>
-          </div>
-          <div className="bg-white p-6 border border-neutral-100">
-            <p className="text-3xl font-serif mb-1">4</p>
-            <p className="text-sm text-neutral-500">Kategorier</p>
-          </div>
-          <div className="bg-white p-6 border border-neutral-100">
-            <p className="text-3xl font-serif mb-1">3</p>
-            <p className="text-sm text-neutral-500">Tillgängliga</p>
+        <div className="mt-12">
+          <h3 className="text-sm font-medium text-neutral-400 uppercase tracking-wider mb-4">Snabbstatistik</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-white rounded-xl p-5 border border-neutral-200 shadow-sm">
+              <p className="text-3xl font-bold text-neutral-800 mb-1">7</p>
+              <p className="text-sm text-neutral-500">Konstverk</p>
+            </div>
+            <div className="bg-white rounded-xl p-5 border border-neutral-200 shadow-sm">
+              <p className="text-3xl font-bold text-neutral-800 mb-1">6</p>
+              <p className="text-sm text-neutral-500">Utställningar</p>
+            </div>
+            <div className="bg-white rounded-xl p-5 border border-neutral-200 shadow-sm">
+              <p className="text-3xl font-bold text-neutral-800 mb-1">4</p>
+              <p className="text-sm text-neutral-500">Kategorier</p>
+            </div>
+            <div className="bg-white rounded-xl p-5 border border-neutral-200 shadow-sm">
+              <p className="text-3xl font-bold text-neutral-800 mb-1">3</p>
+              <p className="text-sm text-neutral-500">Tillgängliga</p>
+            </div>
           </div>
         </div>
       </main>
