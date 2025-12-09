@@ -255,6 +255,11 @@ export function GalleryManager() {
     { imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/nobel.png', title: 'Dan Shechtman Nobeldiplom', medium: 'Akvarell', dimensions: '', year: '2011', category: 'Nobel', description: 'Nobeldiplom 2011 - Kemipriset - Flyga drake' },
     { imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/chestmanprice.jpg', title: 'Nobelceremonin 2011', medium: 'Fotografi', dimensions: '', year: '2011', category: 'Nobel', description: 'Nobelceremonin 2011' },
     { imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/lena_chestman.jpg', title: 'Lena med Dan Shechtman', medium: 'Fotografi', dimensions: '', year: '2011', category: 'Nobel', description: 'Från Nobelceremonin 2011' },
+    
+    // === TEXTILMÅLERI (3 images) ===
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/20140130235406-1.jpg', title: 'Sidenmålning 1', medium: 'Textilmåleri', dimensions: '', year: '', category: 'Textilmåleri', description: 'Handmålat siden' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/20140129221916-1.jpg', title: 'Sidenmålning 2', medium: 'Textilmåleri', dimensions: '', year: '', category: 'Textilmåleri', description: 'Sidenschal med akvarellmotiv' },
+    { imageUrl: 'https://cronstrom.net/wp-content/uploads/2018/11/20140129222102-1.jpg', title: 'Sidenmålning 3', medium: 'Textilmåleri', dimensions: '', year: '', category: 'Textilmåleri', description: 'Unik textilkonst på siden' },
   ];
 
   // Migrate ALL images from WordPress to Vercel Blob (one at a time to avoid timeout)
@@ -649,7 +654,7 @@ export function GalleryManager() {
                     ) : (
                       <>
                         <Upload size={18} />
-                        Migrera Bilder (35)
+                        Migrera Bilder (38)
                       </>
                     )}
                   </button>

@@ -1,12 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { artworks } from '../lib/data';
-import { ArtworkGrid } from '../components/shared/SharedComponents';
 import { ArtworkModal } from '../components/shared/ArtworkModal';
 import type { Artwork } from '../lib/types';
+import { API_BASE } from '../lib/config';
 
-// Textilmåleri images from cronstrom.net
-const textileImages = [
+// Fallback textilmåleri images from WordPress
+const fallbackImages = [
   {
     src: 'https://cronstrom.net/wp-content/uploads/2018/11/20140130235406-1.jpg',
     alt: 'Sidenmålning 1',
@@ -70,48 +69,64 @@ const processSteps = [
   }
 ];
 
-interface TextileImage {
-  src: string;
-  alt: string;
-  caption?: string;
-}
-
-function ImageModal({ image, onClose }: { image: TextileImage; onClose: () => void }) {
-  return (
-    <div 
-      className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 cursor-pointer"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        className="relative max-w-5xl max-h-[90vh]"
-        onClick={e => e.stopPropagation()}
-      >
-        <img 
-          src={image.src} 
-          alt={image.alt}
-          className="max-w-full max-h-[85vh] object-contain"
-        />
-        {image.caption && (
-          <p className="text-white/80 text-center mt-4 text-sm">{image.caption}</p>
-        )}
-        <button 
-          onClick={onClose}
-          className="absolute -top-12 right-0 text-white/80 hover:text-white text-3xl"
-        >
-          ×
-        </button>
-      </motion.div>
-    </div>
-  );
-}
-
 export function Textile() {
   const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null);
-  const [selectedImage, setSelectedImage] = useState<TextileImage | null>(null);
-  const textilItems = artworks.filter(a => a.category === 'Textilmåleri');
+  const [textileArtworks, setTextileArtworks] = useState<Artwork[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Convert fallback images to Artwork format
+  const fallbackArtworks: Artwork[] = fallbackImages.map((img, idx) => ({
+    id: `fallback-${idx}`,
+    title: img.alt,
+    medium: 'Textilmåleri',
+    dimensions: '',
+    year: '',
+    imageUrl: img.src,
+    category: 'Textilmåleri',
+    description: img.caption || '',
+    status: 'available'
+  }));
+
+  // Fetch textile artworks from database
+  useEffect(() => {
+    const loadTextileArtworks = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/artworks`);
+        if (response.ok) {
+          const data = await response.json();
+          const allArtworks = data.artworks || data || [];
+          const textileItems = allArtworks
+            .filter((a: any) => a.category === 'Textilmåleri')
+            .map((a: any) => ({
+              id: a.id?.toString() || '',
+              title: a.title || '',
+              medium: a.medium || 'Textilmåleri',
+              dimensions: a.dimensions || '',
+              year: a.year || '',
+              imageUrl: a.image_url || a.imageUrl || '',
+              category: a.category || 'Textilmåleri',
+              description: a.description || '',
+              status: a.status || 'available'
+            }));
+          
+          if (textileItems.length > 0) {
+            setTextileArtworks(textileItems);
+          } else {
+            setTextileArtworks(fallbackArtworks);
+          }
+        } else {
+          setTextileArtworks(fallbackArtworks);
+        }
+      } catch (err) {
+        console.log('Using fallback textile images');
+        setTextileArtworks(fallbackArtworks);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadTextileArtworks();
+  }, []);
 
   return (
     <>
@@ -159,29 +174,37 @@ export function Textile() {
           <div className="container mx-auto px-6">
             <h2 className="text-sm uppercase tracking-wide text-rose-200 mb-8 text-center">Verk</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-              {textileImages.map((image, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.15, duration: 0.5 }}
-                  whileHover={{ scale: 1.03 }}
-                  className="cursor-pointer overflow-hidden rounded-lg"
-                  onClick={() => setSelectedImage(image)}
-                >
-                  <img 
-                    src={image.src} 
-                    alt={image.alt}
-                    className="w-full h-80 object-cover hover:opacity-90 transition-opacity"
-                  />
-                  {image.caption && (
-                    <p className="text-sm text-rose-200/80 mt-3 text-center italic">{image.caption}</p>
-                  )}
-                </motion.div>
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="flex justify-center py-12">
+                <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+              </div>
+            ) : textileArtworks.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                {textileArtworks.map((artwork, index) => (
+                  <motion.div
+                    key={artwork.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.15, duration: 0.5 }}
+                    whileHover={{ scale: 1.03 }}
+                    className="cursor-pointer overflow-hidden rounded-lg"
+                    onClick={() => setSelectedArtwork(artwork)}
+                  >
+                    <img 
+                      src={artwork.imageUrl} 
+                      alt={artwork.title}
+                      className="w-full h-80 object-cover hover:opacity-90 transition-opacity"
+                    />
+                    {artwork.description && (
+                      <p className="text-sm text-rose-200/80 mt-3 text-center italic">{artwork.description}</p>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-rose-200/60">Inga verk tillgängliga</p>
+            )}
           </div>
         </motion.div>
 
@@ -300,34 +323,12 @@ export function Textile() {
           </div>
         </motion.div>
 
-        {/* Additional Gallery Section (from data.ts) */}
-        {textilItems.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="py-16"
-          >
-            <div className="container mx-auto px-6">
-              <h2 className="text-3xl font-serif text-neutral-900 mb-8">Fler verk</h2>
-              <ArtworkGrid items={textilItems} onOpen={setSelectedArtwork} />
-            </div>
-          </motion.div>
-        )}
       </section>
 
       {selectedArtwork && (
         <ArtworkModal 
           artwork={selectedArtwork} 
           onClose={() => setSelectedArtwork(null)} 
-        />
-      )}
-
-      {selectedImage && (
-        <ImageModal 
-          image={selectedImage} 
-          onClose={() => setSelectedImage(null)} 
         />
       )}
     </>
