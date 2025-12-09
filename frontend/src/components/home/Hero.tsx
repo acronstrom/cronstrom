@@ -151,16 +151,16 @@ export function Hero() {
               {siteSettings.artistName}
             </h1>
             
-            {/* Tagline - smaller on mobile */}
-            <h2 className="text-xs sm:text-sm md:text-base uppercase tracking-[0.2em] md:tracking-[0.3em] text-neutral-300 mb-4 md:mb-6 font-medium border-l-2 border-white/60 pl-3 md:pl-4">
-              {siteSettings.tagline}
-            </h2>
-            
-            {/* Artist Statement - Frosted Glass - more compact on mobile */}
+            {/* Artist Statement - Frosted Glass with Tagline */}
             <div className="relative max-w-xl mb-6 md:mb-10 bg-black/20 md:bg-black/10 backdrop-blur-sm border border-white/10 md:border-white/5 p-4 md:p-8">
               {/* Decorative corner accent - hidden on mobile */}
               <div className="hidden md:block absolute top-0 left-0 w-12 h-[2px] bg-white/60"></div>
               <div className="hidden md:block absolute top-0 left-0 w-[2px] h-12 bg-white/60"></div>
+              
+              {/* Tagline */}
+              <p className="text-[10px] sm:text-xs md:text-sm uppercase tracking-[0.2em] md:tracking-[0.3em] text-white/70 mb-3 md:mb-4 font-medium">
+                {siteSettings.tagline}
+              </p>
               
               <p className="text-white/90 text-sm sm:text-base md:text-xl font-light leading-relaxed italic">
                 {siteSettings.shortBio}
