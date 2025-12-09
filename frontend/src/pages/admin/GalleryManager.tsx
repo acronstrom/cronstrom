@@ -65,15 +65,19 @@ export function GalleryManager() {
 
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, index: number) => {
+    // Store the artwork ID instead of index for reliable tracking
+    const artworkId = filteredArtworks[index]?.id;
     setDraggedIndex(index);
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', index.toString());
+    e.dataTransfer.setData('text/plain', artworkId || '');
   };
 
   const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    setDragOverIndex(index);
+    if (draggedIndex !== index) {
+      setDragOverIndex(index);
+    }
   };
 
   const handleDragLeave = () => {
@@ -82,18 +86,36 @@ export function GalleryManager() {
 
   const handleDrop = (e: React.DragEvent, dropIndex: number) => {
     e.preventDefault();
+    e.stopPropagation();
+    
     if (draggedIndex === null || draggedIndex === dropIndex) {
       setDraggedIndex(null);
       setDragOverIndex(null);
       return;
     }
 
-    const newArtworks = [...artworks];
-    const [draggedItem] = newArtworks.splice(draggedIndex, 1);
-    newArtworks.splice(dropIndex, 0, draggedItem);
+    // Get artwork IDs from filtered list
+    const draggedArtwork = filteredArtworks[draggedIndex];
+    const dropArtwork = filteredArtworks[dropIndex];
     
-    setArtworks(newArtworks);
-    setHasOrderChanges(true);
+    if (!draggedArtwork || !dropArtwork) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    // Find actual positions in full array
+    const fromIndex = artworks.findIndex(a => a.id === draggedArtwork.id);
+    const toIndex = artworks.findIndex(a => a.id === dropArtwork.id);
+
+    if (fromIndex !== -1 && toIndex !== -1) {
+      const newArtworks = [...artworks];
+      const [removed] = newArtworks.splice(fromIndex, 1);
+      newArtworks.splice(toIndex, 0, removed);
+      setArtworks(newArtworks);
+      setHasOrderChanges(true);
+    }
+
     setDraggedIndex(null);
     setDragOverIndex(null);
   };
