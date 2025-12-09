@@ -251,16 +251,30 @@ export function GalleryManager() {
   ];
 
   // Migrate ALL images from WordPress to Vercel Blob (one at a time to avoid timeout)
+  // Skips images that already exist in the database (by title match)
   const migrateAllImages = async () => {
     if (!useDatabase) {
       alert('Databasen måste vara ansluten för att migrera bilder.');
       return;
     }
     
+    // Check which images already exist
+    const existingTitles = new Set(artworks.map(a => a.title.toLowerCase().trim()));
+    const imagesToMigrate = allImagesToMigrate.filter(
+      img => !existingTitles.has(img.title.toLowerCase().trim())
+    );
+    
+    if (imagesToMigrate.length === 0) {
+      alert('Alla bilder är redan migrerade!');
+      return;
+    }
+    
+    const skippedCount = allImagesToMigrate.length - imagesToMigrate.length;
     const confirm = window.confirm(
-      `Detta kommer att migrera ${allImagesToMigrate.length} bilder från WordPress till Vercel Blob.\n\n` +
-      `• 15 Galleri-bilder\n• 7 Glasfusing-bilder\n• 13 Nobel-bilder\n\n` +
-      `Det tar ca 1-2 minuter. Fortsätta?`
+      `Migration av bilder från WordPress till Vercel Blob:\n\n` +
+      `• ${imagesToMigrate.length} bilder att migrera\n` +
+      `• ${skippedCount} bilder hoppas över (finns redan)\n\n` +
+      `Det tar ca ${Math.ceil(imagesToMigrate.length * 2 / 60)} minut(er). Fortsätta?`
     );
     if (!confirm) return;
     
@@ -271,12 +285,12 @@ export function GalleryManager() {
     let failCount = 0;
     
     // Migrate one image at a time to avoid timeout
-    for (let i = 0; i < allImagesToMigrate.length; i++) {
-      const img = allImagesToMigrate[i];
-      setMigrationProgress(`${i + 1}/${allImagesToMigrate.length}: ${img.title}`);
+    for (let i = 0; i < imagesToMigrate.length; i++) {
+      const img = imagesToMigrate[i];
+      setMigrationProgress(`${i + 1}/${imagesToMigrate.length}: ${img.title}`);
       
       try {
-        console.log(`Migrating ${i + 1}/${allImagesToMigrate.length}: ${img.title}`);
+        console.log(`Migrating ${i + 1}/${imagesToMigrate.length}: ${img.title}`);
         
         const response = await fetch(`${API_BASE}/migrate-image`, {
           method: 'POST',
@@ -305,7 +319,7 @@ export function GalleryManager() {
     
     setIsMigrating(false);
     setMigrationProgress('');
-    alert(`Migration klar!\n\n✓ ${successCount} lyckades\n✗ ${failCount} misslyckades`);
+    alert(`Migration klar!\n\n✓ ${successCount} lyckades\n✗ ${failCount} misslyckades\n⏭ ${skippedCount} hoppades över`);
     
     // Reload artworks to show the new ones
     await loadArtworks();
