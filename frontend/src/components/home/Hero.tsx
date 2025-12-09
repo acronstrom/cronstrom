@@ -197,7 +197,7 @@ export function Hero() {
               {/* Link to exhibitions page */}
               <button 
                 onClick={() => navigate('/utstallningar')}
-                className="group mb-4 md:mb-6 text-white hover:text-white/80 transition-all duration-300 flex items-center gap-2 md:gap-3 text-xs md:text-sm uppercase tracking-[0.15em] md:tracking-[0.2em] font-medium"
+                className="group mb-4 md:mb-6 text-white hover:text-white/80 transition-all duration-300 flex items-center gap-2 md:gap-3 text-sm md:text-base uppercase tracking-[0.15em] md:tracking-[0.2em] font-medium"
               >
                 <span className="w-6 md:w-8 h-[1px] bg-white/60 group-hover:w-10 md:group-hover:w-12 transition-all duration-300"></span>
                 Aktuella Utställningar
@@ -206,7 +206,7 @@ export function Hero() {
 
               {/* Pågående */}
               <div className="mb-4 md:mb-6">
-                <p className="text-[10px] md:text-xs uppercase tracking-[0.15em] md:tracking-[0.2em] text-white/70 mb-2 md:mb-3 font-medium">
+                <p className="text-xs md:text-sm uppercase tracking-[0.15em] md:tracking-[0.2em] text-white/70 mb-2 md:mb-3 font-medium">
                   Pågående
                 </p>
                 {currentExhibitions.length > 0 ? (
@@ -215,13 +215,13 @@ export function Hero() {
                     const description = (exhibition as any).description;
                     return (
                       <div key={exhibition.id || index} className="mb-3 md:mb-4">
-                        <p className="text-white text-base md:text-lg font-serif">{exhibition.title}</p>
-                        <p className="text-white/50 text-xs md:text-sm">
+                        <p className="text-white text-lg md:text-xl font-serif">{exhibition.title}</p>
+                        <p className="text-white/60 text-sm md:text-base">
                           {exhibition.venue || exhibition.location}
-                          {dateRange && <span className="text-white/40"> · {dateRange}</span>}
+                          {dateRange && <span className="text-white/50"> · {dateRange}</span>}
                         </p>
                         {description && (
-                          <p className="text-white/40 text-[10px] md:text-xs mt-1 whitespace-pre-line leading-relaxed">
+                          <p className="text-white/50 text-xs md:text-sm mt-1 whitespace-pre-line leading-relaxed">
                             <MarkdownText text={description} />
                           </p>
                         )}
@@ -229,7 +229,7 @@ export function Hero() {
                     );
                   })
                 ) : (
-                  <p className="text-white/30 text-xs md:text-sm italic">
+                  <p className="text-white/30 text-sm md:text-base italic">
                     Inga pågående just nu
                   </p>
                 )}
@@ -240,7 +240,7 @@ export function Hero() {
 
               {/* Kommande */}
               <div>
-                <p className="text-[10px] md:text-xs uppercase tracking-[0.15em] md:tracking-[0.2em] text-white/70 mb-2 md:mb-3 font-medium">
+                <p className="text-xs md:text-sm uppercase tracking-[0.15em] md:tracking-[0.2em] text-white/70 mb-2 md:mb-3 font-medium">
                   Kommande
                 </p>
                 {upcomingExhibitions.length > 0 ? (
@@ -249,13 +249,13 @@ export function Hero() {
                     const description = (exhibition as any).description;
                     return (
                       <div key={exhibition.id || index} className="mb-3 md:mb-4">
-                        <p className="text-white text-base md:text-lg font-serif">{exhibition.title}</p>
-                        <p className="text-white/50 text-xs md:text-sm">
+                        <p className="text-white text-lg md:text-xl font-serif">{exhibition.title}</p>
+                        <p className="text-white/60 text-sm md:text-base">
                           {exhibition.venue || exhibition.location}
-                          {dateRange && <span className="text-white/40"> · {dateRange}</span>}
+                          {dateRange && <span className="text-white/50"> · {dateRange}</span>}
                         </p>
                         {description && (
-                          <p className="text-white/40 text-[10px] md:text-xs mt-1 whitespace-pre-line leading-relaxed">
+                          <p className="text-white/50 text-xs md:text-sm mt-1 whitespace-pre-line leading-relaxed">
                             <MarkdownText text={description} />
                           </p>
                         )}
@@ -263,7 +263,7 @@ export function Hero() {
                     );
                   })
                 ) : (
-                  <p className="text-white/30 text-xs md:text-sm italic">
+                  <p className="text-white/30 text-sm md:text-base italic">
                     Inga kommande just nu
                   </p>
                 )}
