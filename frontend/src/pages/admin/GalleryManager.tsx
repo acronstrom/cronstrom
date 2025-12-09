@@ -34,9 +34,16 @@ export function GalleryManager() {
   const [hasOrderChanges, setHasOrderChanges] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('Alla');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const categories = ['Galleri', 'Glasfusing', 'Textilmåleri', 'Nobel'];
+  const tabs = ['Alla', ...categories];
+  
+  // Filter artworks based on active tab
+  const filteredArtworks = activeTab === 'Alla' 
+    ? artworks 
+    : artworks.filter(a => a.category === activeTab);
 
   // Move artwork up in order
   const moveUp = (index: number) => {
@@ -687,10 +694,47 @@ export function GalleryManager() {
         </div>
       )}
 
+      {/* Category Tabs */}
+      <div className="border-b border-neutral-200 bg-white sticky top-0 z-10">
+        <div className="container mx-auto px-6">
+          <nav className="flex gap-1 overflow-x-auto">
+            {tabs.map(tab => {
+              const count = tab === 'Alla' 
+                ? artworks.length 
+                : artworks.filter(a => a.category === tab).length;
+              return (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                    activeTab === tab
+                      ? 'border-black text-black'
+                      : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300'
+                  }`}
+                >
+                  {tab}
+                  <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+                    activeTab === tab ? 'bg-black text-white' : 'bg-neutral-100 text-neutral-600'
+                  }`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+      </div>
+
       {/* Gallery Grid */}
       <main className="container mx-auto px-6 py-12">
+        {filteredArtworks.length === 0 ? (
+          <div className="text-center py-16 text-neutral-500">
+            <ImageIcon size={48} className="mx-auto mb-4 opacity-50" />
+            <p>Inga verk i denna kategori</p>
+          </div>
+        ) : (
         <div className={isReorderMode ? "space-y-2" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"}>
-          {artworks.map((artwork, index) => (
+          {filteredArtworks.map((artwork, index) => (
             isReorderMode ? (
               /* Reorder Mode - List view with drag & drop */
               <div 
@@ -808,6 +852,7 @@ export function GalleryManager() {
             )
           ))}
         </div>
+        )}
       </main>
 
       {/* Edit Modal */}
