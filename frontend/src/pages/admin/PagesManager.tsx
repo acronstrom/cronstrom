@@ -25,7 +25,7 @@ export function PagesManager() {
           <div className="flex items-center gap-4">
             <Link 
               to="/admin" 
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-neutral-600 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition-colors"
+              className="flex items-center gap-2 border border-neutral-300 text-neutral-600 px-4 py-3 text-sm uppercase tracking-wider hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Tillbaka
@@ -35,7 +35,7 @@ export function PagesManager() {
           <Link
             to="/"
             target="_blank"
-            className="flex items-center gap-2 text-neutral-500 hover:text-neutral-900 px-3 py-2 text-sm border border-neutral-200 rounded hover:border-neutral-400 transition-all"
+            className="flex items-center gap-2 border border-neutral-300 text-neutral-600 px-4 py-3 text-sm uppercase tracking-wider hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
           >
             <ExternalLink className="w-4 h-4" />
             Visa webbplats
