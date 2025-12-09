@@ -243,18 +243,26 @@ export function EducationManager() {
               Databas: {dbStatus === 'connected' ? 'Ansluten' : 'Ej ansluten'}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <Link
+              to="/"
+              target="_blank"
+              className="flex items-center gap-2 text-neutral-500 hover:text-neutral-900 px-3 py-2 text-sm border border-neutral-200 rounded hover:border-neutral-400 transition-all"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Visa webbplats
+            </Link>
             <button
               onClick={handleSyncToDB}
               disabled={isSaving || dbStatus !== 'connected'}
-              className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 text-sm hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 text-sm hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded"
             >
               <Database className="w-4 h-4" />
               Synka till DB
             </button>
             <button
               onClick={() => openAddModal('education')}
-              className="flex items-center gap-2 bg-neutral-900 text-white px-4 py-2 text-sm hover:bg-neutral-800 transition-colors"
+              className="flex items-center gap-2 bg-neutral-900 text-white px-4 py-2 text-sm hover:bg-neutral-800 transition-colors rounded"
             >
               <Plus className="w-4 h-4" />
               Lägg till

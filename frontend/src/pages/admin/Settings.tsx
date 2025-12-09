@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Save, User, Globe, Mail, AlertTriangle, RefreshCcw } from 'lucide-react';
+import { ArrowLeft, Save, User, Globe, Mail, AlertTriangle, RefreshCcw, ExternalLink } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { artistBio } from '../../lib/data';
 import { API_BASE } from '../../lib/config';
@@ -147,14 +147,24 @@ export function AdminSettings() {
             </span>
           </div>
           
-          <button
-            onClick={handleSave}
-            disabled={isSaving || dbStatus !== 'connected'}
-            className="flex items-center gap-2 bg-black text-white px-6 py-3 text-sm uppercase tracking-wider hover:bg-neutral-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSaving ? <RefreshCcw size={18} className="animate-spin" /> : <Save size={18} />}
-            {isSaving ? 'Sparar...' : 'Spara'}
-          </button>
+          <div className="flex items-center gap-3">
+            <Link
+              to="/"
+              target="_blank"
+              className="flex items-center gap-2 text-neutral-500 hover:text-neutral-900 px-3 py-2 text-sm border border-neutral-200 rounded hover:border-neutral-400 transition-all"
+            >
+              <ExternalLink size={16} />
+              Visa webbplats
+            </Link>
+            <button
+              onClick={handleSave}
+              disabled={isSaving || dbStatus !== 'connected'}
+              className="flex items-center gap-2 bg-black text-white px-6 py-3 text-sm uppercase tracking-wider hover:bg-neutral-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded"
+            >
+              {isSaving ? <RefreshCcw size={18} className="animate-spin" /> : <Save size={18} />}
+              {isSaving ? 'Sparar...' : 'Spara'}
+            </button>
+          </div>
         </div>
       </header>
 

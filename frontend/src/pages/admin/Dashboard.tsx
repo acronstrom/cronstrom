@@ -80,9 +80,6 @@ export function AdminDashboard() {
           </div>
           
           <div className="flex items-center gap-6">
-            <Link to="/" className="text-sm text-neutral-500 hover:text-neutral-900 transition-colors">
-              Visa webbplats →
-            </Link>
             <div className="flex items-center gap-3">
               <div className="text-right">
                 <p className="text-sm font-medium">{user?.name}</p>

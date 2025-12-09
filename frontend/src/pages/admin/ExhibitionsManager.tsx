@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Plus, Edit2, Trash2, Calendar, MapPin, Award, Users, Star, X, Save, Loader2, RotateCcw, Check } from 'lucide-react';
+import { ArrowLeft, Plus, Edit2, Trash2, Calendar, MapPin, Award, Users, Star, X, Save, Loader2, RotateCcw, Check, ExternalLink } from 'lucide-react';
 import { exhibitions as initialExhibitions } from '../../lib/data';
 import type { Exhibition } from '../../lib/types';
 import { API_BASE } from '../../lib/config';
@@ -307,10 +307,18 @@ export function ExhibitionsManager() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <Link
+              to="/"
+              target="_blank"
+              className="flex items-center gap-2 text-neutral-500 hover:text-neutral-900 px-3 py-2 text-sm border border-neutral-200 rounded hover:border-neutral-400 transition-all"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Visa webbplats
+            </Link>
             {useDatabase && (
               <button 
                 onClick={handleClearDatabase}
-                className="flex items-center gap-2 border border-red-200 text-red-600 px-4 py-2 text-sm hover:bg-red-50 transition-colors"
+                className="flex items-center gap-2 border border-red-200 text-red-600 px-4 py-2 text-sm hover:bg-red-50 transition-colors rounded"
               >
                 <Trash2 className="w-4 h-4" />
                 Rensa DB
@@ -319,7 +327,7 @@ export function ExhibitionsManager() {
             {!useDatabase && (
               <button 
                 onClick={handleSyncToDatabase}
-                className="flex items-center gap-2 border border-neutral-200 px-4 py-2 text-sm hover:bg-neutral-50 transition-colors"
+                className="flex items-center gap-2 border border-neutral-200 px-4 py-2 text-sm hover:bg-neutral-50 transition-colors rounded"
               >
                 <RotateCcw className="w-4 h-4" />
                 Synka till DB
@@ -327,7 +335,7 @@ export function ExhibitionsManager() {
             )}
             <button 
               onClick={openAddModal}
-              className="flex items-center gap-2 bg-neutral-900 text-white px-4 py-2 text-sm hover:bg-neutral-800 transition-colors"
+              className="flex items-center gap-2 bg-neutral-900 text-white px-4 py-2 text-sm hover:bg-neutral-800 transition-colors rounded"
             >
               <Plus className="w-4 h-4" />
               Lägg till utställning

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Edit2, FileText, Eye } from 'lucide-react';
+import { ArrowLeft, Edit2, FileText, Eye, ExternalLink } from 'lucide-react';
 import { artistBio } from '../../lib/data';
 
 const pages = [
@@ -28,6 +28,14 @@ export function PagesManager() {
             </Link>
             <h1 className="text-xl font-serif">Hantera Sidor</h1>
           </div>
+          <Link
+            to="/"
+            target="_blank"
+            className="flex items-center gap-2 text-neutral-500 hover:text-neutral-900 px-3 py-2 text-sm border border-neutral-200 rounded hover:border-neutral-400 transition-all"
+          >
+            <ExternalLink className="w-4 h-4" />
+            Visa webbplats
+          </Link>
         </div>
       </header>
 

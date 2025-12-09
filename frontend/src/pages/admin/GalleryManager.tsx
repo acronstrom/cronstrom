@@ -14,7 +14,8 @@ import {
   Loader2,
   GripVertical,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  ExternalLink
 } from 'lucide-react';
 import { artworks as initialArtworks } from '../../lib/data';
 import type { Artwork } from '../../lib/types';
@@ -625,6 +626,14 @@ export function GalleryManager() {
           </div>
           
           <div className="flex items-center gap-3">
+            <Link
+              to="/"
+              target="_blank"
+              className="flex items-center gap-2 text-neutral-500 hover:text-neutral-900 px-3 py-2 text-sm border border-neutral-200 rounded hover:border-neutral-400 transition-all"
+            >
+              <ExternalLink size={16} />
+              Visa webbplats
+            </Link>
             {!useDatabase && (
               <button
                 onClick={handleSyncToDatabase}
