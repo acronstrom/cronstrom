@@ -219,11 +219,11 @@ export function EducationManager() {
   const getTypeBadge = (type: string) => {
     switch(type) {
       case 'education':
-        return <span className="px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-700">Utbildning</span>;
+        return <span className="px-1.5 md:px-2 py-0.5 rounded text-[10px] md:text-xs bg-blue-100 text-blue-700">Utbildning</span>;
       case 'membership':
-        return <span className="px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">Medlemskap</span>;
+        return <span className="px-1.5 md:px-2 py-0.5 rounded text-[10px] md:text-xs bg-green-100 text-green-700">Medlemskap</span>;
       case 'link':
-        return <span className="px-2 py-0.5 rounded text-xs bg-purple-100 text-purple-700">Länk</span>;
+        return <span className="px-1.5 md:px-2 py-0.5 rounded text-[10px] md:text-xs bg-purple-100 text-purple-700">Länk</span>;
       default:
         return null;
     }
@@ -292,43 +292,34 @@ export function EducationManager() {
         )}
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-4 md:mb-8">
           <button
             onClick={() => setFilter('all')}
-            className={`p-4 rounded-lg text-left transition-colors ${filter === 'all' ? 'bg-neutral-900 text-white' : 'bg-white hover:bg-neutral-50'}`}
+            className={`p-2 md:p-4 rounded-lg text-left transition-colors ${filter === 'all' ? 'bg-neutral-900 text-white' : 'bg-white hover:bg-neutral-50'}`}
           >
-            <p className="text-2xl font-serif">{educationList.length}</p>
-            <p className="text-sm opacity-70">Totalt</p>
+            <p className="text-xl md:text-2xl font-serif">{educationList.length}</p>
+            <p className="text-[10px] md:text-sm opacity-70">Totalt</p>
           </button>
           <button
             onClick={() => setFilter('education')}
-            className={`p-4 rounded-lg text-left transition-colors ${filter === 'education' ? 'bg-blue-600 text-white' : 'bg-white hover:bg-neutral-50'}`}
+            className={`p-2 md:p-4 rounded-lg text-left transition-colors ${filter === 'education' ? 'bg-blue-600 text-white' : 'bg-white hover:bg-neutral-50'}`}
           >
-            <div className="flex items-center gap-2 mb-1">
-              <GraduationCap className="w-4 h-4" />
-              <span className="text-2xl font-serif">{educationCount}</span>
-            </div>
-            <p className="text-sm opacity-70">Utbildning</p>
+            <p className="text-xl md:text-2xl font-serif">{educationCount}</p>
+            <p className="text-[10px] md:text-sm opacity-70">Utbildning</p>
           </button>
           <button
             onClick={() => setFilter('membership')}
-            className={`p-4 rounded-lg text-left transition-colors ${filter === 'membership' ? 'bg-green-600 text-white' : 'bg-white hover:bg-neutral-50'}`}
+            className={`p-2 md:p-4 rounded-lg text-left transition-colors ${filter === 'membership' ? 'bg-green-600 text-white' : 'bg-white hover:bg-neutral-50'}`}
           >
-            <div className="flex items-center gap-2 mb-1">
-              <Users className="w-4 h-4" />
-              <span className="text-2xl font-serif">{membershipCount}</span>
-            </div>
-            <p className="text-sm opacity-70">Medlemskap</p>
+            <p className="text-xl md:text-2xl font-serif">{membershipCount}</p>
+            <p className="text-[10px] md:text-sm opacity-70">Medlemskap</p>
           </button>
           <button
             onClick={() => setFilter('link')}
-            className={`p-4 rounded-lg text-left transition-colors ${filter === 'link' ? 'bg-purple-600 text-white' : 'bg-white hover:bg-neutral-50'}`}
+            className={`p-2 md:p-4 rounded-lg text-left transition-colors ${filter === 'link' ? 'bg-purple-600 text-white' : 'bg-white hover:bg-neutral-50'}`}
           >
-            <div className="flex items-center gap-2 mb-1">
-              <ExternalLink className="w-4 h-4" />
-              <span className="text-2xl font-serif">{linkCount}</span>
-            </div>
-            <p className="text-sm opacity-70">Länkar</p>
+            <p className="text-xl md:text-2xl font-serif">{linkCount}</p>
+            <p className="text-[10px] md:text-sm opacity-70">Länkar</p>
           </button>
         </div>
 
@@ -338,8 +329,8 @@ export function EducationManager() {
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="p-4 border-b border-neutral-200">
-              <p className="text-sm text-neutral-500">
+            <div className="p-3 md:p-4 border-b border-neutral-200">
+              <p className="text-xs md:text-sm text-neutral-500">
                 Visar {filteredItems.length} poster
                 {filter !== 'all' && ` (${getTypeLabel(filter)})`}
               </p>
@@ -347,17 +338,17 @@ export function EducationManager() {
 
             <div className="divide-y divide-neutral-100">
               {filteredItems.map((item) => (
-                <div key={item.id} className="p-6 hover:bg-neutral-50 transition-colors">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-medium text-lg">{item.institution}</h3>
+                <div key={item.id} className="p-3 md:p-6 hover:bg-neutral-50 transition-colors">
+                  <div className="flex items-start gap-2 md:gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-1 md:gap-3 mb-1 md:mb-2">
+                        <h3 className="font-medium text-sm md:text-lg truncate md:whitespace-normal">{item.institution}</h3>
                         {getTypeBadge(item.type)}
                       </div>
-                      <p className="text-neutral-600">{item.degree}</p>
+                      <p className="text-neutral-600 text-xs md:text-base truncate md:whitespace-normal">{item.degree}</p>
                       {item.year && (
-                        <p className="text-sm text-neutral-500 mt-1 flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
+                        <p className="text-[10px] md:text-sm text-neutral-500 mt-1 flex items-center gap-1">
+                          <Calendar className="w-3 h-3 md:w-4 md:h-4" />
                           {item.year}
                         </p>
                       )}
@@ -366,27 +357,27 @@ export function EducationManager() {
                           href={item.url} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:underline mt-1 flex items-center gap-1"
+                          className="text-[10px] md:text-sm text-blue-600 hover:underline mt-1 flex items-center gap-1 truncate"
                         >
-                          <ExternalLink className="w-3 h-3" />
-                          {item.url}
+                          <ExternalLink className="w-3 h-3 shrink-0" />
+                          <span className="truncate">{item.url}</span>
                         </a>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 ml-4">
+                    <div className="flex items-center gap-1 shrink-0">
                       <button
                         onClick={() => openEditModal(item)}
-                        className="p-2 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 rounded transition-colors"
+                        className="p-1.5 md:p-2 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 rounded transition-colors"
                         title="Redigera"
                       >
-                        <Edit2 className="w-4 h-4" />
+                        <Edit2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(item.id!)}
-                        className="p-2 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                        className="p-1.5 md:p-2 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                         title="Ta bort"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
                       </button>
                     </div>
                   </div>

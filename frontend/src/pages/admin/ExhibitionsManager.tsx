@@ -110,14 +110,14 @@ export function ExhibitionsManager() {
   const getCategoryBadge = (category?: string) => {
     switch(category) {
       case 'separat':
-        return <span className="px-2 py-0.5 rounded text-xs bg-purple-100 text-purple-700">Separat</span>;
+        return <span className="px-1.5 md:px-2 py-0.5 rounded text-[10px] md:text-xs bg-purple-100 text-purple-700">Separat</span>;
       case 'samling':
-        return <span className="px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-700">Samlingsutställning</span>;
+        return <span className="px-1.5 md:px-2 py-0.5 rounded text-[10px] md:text-xs bg-blue-100 text-blue-700">Samling</span>;
       case 'jury':
-        return <span className="px-2 py-0.5 rounded text-xs bg-amber-100 text-amber-700">Jurybedömd</span>;
+        return <span className="px-1.5 md:px-2 py-0.5 rounded text-[10px] md:text-xs bg-amber-100 text-amber-700">Jury</span>;
       case 'commission':
       case 'represented':
-        return <span className="px-2 py-0.5 rounded text-xs bg-teal-100 text-teal-700">Uppdrag/Representerad</span>;
+        return <span className="px-1.5 md:px-2 py-0.5 rounded text-[10px] md:text-xs bg-teal-100 text-teal-700">Uppdrag</span>;
       default:
         return null;
     }
@@ -365,79 +365,62 @@ export function ExhibitionsManager() {
 
       {/* Content */}
       <main className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-8">
-        {/* Stats */}
-        <div className="grid grid-cols-3 md:grid-cols-7 gap-2 md:gap-4 mb-4 md:mb-8">
+        {/* Stats - scrollable on mobile */}
+        <div className="flex gap-2 md:grid md:grid-cols-7 md:gap-4 mb-4 md:mb-8 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:overflow-visible">
           <button 
             onClick={() => setFilter('all')}
-            className={`p-4 rounded-lg text-left transition-colors ${filter === 'all' ? 'bg-neutral-900 text-white' : 'bg-white hover:bg-neutral-50'}`}
+            className={`p-2 md:p-4 rounded-lg text-center md:text-left transition-colors shrink-0 min-w-[70px] md:min-w-0 ${filter === 'all' ? 'bg-neutral-900 text-white' : 'bg-white hover:bg-neutral-50'}`}
           >
-            <p className="text-2xl font-serif">{exhibitionList.length}</p>
-            <p className="text-sm opacity-70">Totalt</p>
+            <p className="text-xl md:text-2xl font-serif">{exhibitionList.length}</p>
+            <p className="text-[10px] md:text-sm opacity-70">Totalt</p>
           </button>
           <button 
             onClick={() => setFilter('current')}
-            className={`p-4 rounded-lg text-left transition-colors ${filter === 'current' ? 'bg-red-600 text-white' : 'bg-white hover:bg-neutral-50'}`}
+            className={`p-2 md:p-4 rounded-lg text-center md:text-left transition-colors shrink-0 min-w-[70px] md:min-w-0 ${filter === 'current' ? 'bg-red-600 text-white' : 'bg-white hover:bg-neutral-50'}`}
           >
-            <div className="flex items-center gap-2 mb-1">
-              <Calendar className="w-4 h-4" />
-              <span className="text-2xl font-serif">{currentCount}</span>
-            </div>
-            <p className="text-sm opacity-70">Pågående</p>
+            <p className="text-xl md:text-2xl font-serif">{currentCount}</p>
+            <p className="text-[10px] md:text-sm opacity-70">Pågående</p>
           </button>
           <button 
             onClick={() => setFilter('upcoming')}
-            className={`p-4 rounded-lg text-left transition-colors ${filter === 'upcoming' ? 'bg-orange-600 text-white' : 'bg-white hover:bg-neutral-50'}`}
+            className={`p-2 md:p-4 rounded-lg text-center md:text-left transition-colors shrink-0 min-w-[70px] md:min-w-0 ${filter === 'upcoming' ? 'bg-orange-600 text-white' : 'bg-white hover:bg-neutral-50'}`}
           >
-            <div className="flex items-center gap-2 mb-1">
-              <Calendar className="w-4 h-4" />
-              <span className="text-2xl font-serif">{upcomingCount}</span>
-            </div>
-            <p className="text-sm opacity-70">Kommande</p>
+            <p className="text-xl md:text-2xl font-serif">{upcomingCount}</p>
+            <p className="text-[10px] md:text-sm opacity-70">Kommande</p>
           </button>
           <button 
             onClick={() => setFilter('separat')}
-            className={`p-4 rounded-lg text-left transition-colors ${filter === 'separat' ? 'bg-purple-600 text-white' : 'bg-white hover:bg-neutral-50'}`}
+            className={`p-2 md:p-4 rounded-lg text-center md:text-left transition-colors shrink-0 min-w-[70px] md:min-w-0 ${filter === 'separat' ? 'bg-purple-600 text-white' : 'bg-white hover:bg-neutral-50'}`}
           >
-            <div className="flex items-center gap-2 mb-1">
-              <Star className="w-4 h-4" />
-              <span className="text-2xl font-serif">{separatCount}</span>
-            </div>
-            <p className="text-sm opacity-70">Separat</p>
+            <p className="text-xl md:text-2xl font-serif">{separatCount}</p>
+            <p className="text-[10px] md:text-sm opacity-70">Separat</p>
           </button>
           <button 
             onClick={() => setFilter('samling')}
-            className={`p-4 rounded-lg text-left transition-colors ${filter === 'samling' ? 'bg-blue-600 text-white' : 'bg-white hover:bg-neutral-50'}`}
+            className={`p-2 md:p-4 rounded-lg text-center md:text-left transition-colors shrink-0 min-w-[70px] md:min-w-0 ${filter === 'samling' ? 'bg-blue-600 text-white' : 'bg-white hover:bg-neutral-50'}`}
           >
-            <div className="flex items-center gap-2 mb-1">
-              <Users className="w-4 h-4" />
-              <span className="text-2xl font-serif">{samlingCount}</span>
-            </div>
-            <p className="text-sm opacity-70">Samling</p>
+            <p className="text-xl md:text-2xl font-serif">{samlingCount}</p>
+            <p className="text-[10px] md:text-sm opacity-70">Samling</p>
           </button>
           <button 
             onClick={() => setFilter('jury')}
-            className={`p-4 rounded-lg text-left transition-colors ${filter === 'jury' ? 'bg-amber-600 text-white' : 'bg-white hover:bg-neutral-50'}`}
+            className={`p-2 md:p-4 rounded-lg text-center md:text-left transition-colors shrink-0 min-w-[70px] md:min-w-0 ${filter === 'jury' ? 'bg-amber-600 text-white' : 'bg-white hover:bg-neutral-50'}`}
           >
-            <div className="flex items-center gap-2 mb-1">
-              <Award className="w-4 h-4" />
-              <span className="text-2xl font-serif">{juryCount}</span>
-            </div>
-            <p className="text-sm opacity-70">Jury</p>
+            <p className="text-xl md:text-2xl font-serif">{juryCount}</p>
+            <p className="text-[10px] md:text-sm opacity-70">Jury</p>
           </button>
           <button 
             onClick={() => setFilter('commission')}
-            className={`p-4 rounded-lg text-left transition-colors ${filter === 'commission' ? 'bg-teal-600 text-white' : 'bg-white hover:bg-neutral-50'}`}
+            className={`p-2 md:p-4 rounded-lg text-center md:text-left transition-colors shrink-0 min-w-[70px] md:min-w-0 ${filter === 'commission' ? 'bg-teal-600 text-white' : 'bg-white hover:bg-neutral-50'}`}
           >
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-2xl font-serif">{uppdragCount}</span>
-            </div>
-            <p className="text-sm opacity-70">Uppdrag</p>
+            <p className="text-xl md:text-2xl font-serif">{uppdragCount}</p>
+            <p className="text-[10px] md:text-sm opacity-70">Uppdrag</p>
           </button>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <div className="p-4 border-b border-neutral-200">
-            <p className="text-sm text-neutral-500">
+          <div className="p-3 md:p-4 border-b border-neutral-200">
+            <p className="text-xs md:text-sm text-neutral-500">
               Visar {filteredExhibitions.length} utställningar
               {filter !== 'all' && ` (${filter})`}
             </p>
@@ -445,46 +428,60 @@ export function ExhibitionsManager() {
 
           <div className="divide-y divide-neutral-100">
             {filteredExhibitions.map((exhibition) => (
-              <div key={exhibition.id} className="p-6 hover:bg-neutral-50 transition-colors">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="text-lg font-bold text-neutral-400">{exhibition.date || exhibition.year}</span>
-                      <h3 className="font-medium text-lg">{exhibition.title || '—'}</h3>
+              <div key={exhibition.id} className="p-3 md:p-6 hover:bg-neutral-50 transition-colors">
+                <div className="flex items-start gap-2 md:gap-4">
+                  {/* Year - compact on mobile */}
+                  <span className="text-sm md:text-lg font-bold text-neutral-400 shrink-0 w-10 md:w-14">
+                    {exhibition.date || exhibition.year}
+                  </span>
+                  
+                  {/* Main content */}
+                  <div className="flex-1 min-w-0">
+                    {/* Title */}
+                    <h3 className="font-medium text-sm md:text-lg truncate md:whitespace-normal">
+                      {exhibition.title || '—'}
+                    </h3>
+                    
+                    {/* Badges - wrap on mobile */}
+                    <div className="flex flex-wrap gap-1 md:gap-2 mt-1">
                       {getCategoryBadge(exhibition.category)}
                       {(exhibition as any).is_current && (
-                        <span className="px-2 py-0.5 rounded text-xs bg-red-100 text-red-700">🔴 Pågående</span>
+                        <span className="px-1.5 md:px-2 py-0.5 rounded text-[10px] md:text-xs bg-red-100 text-red-700">🔴 Pågående</span>
                       )}
                       {(exhibition as any).is_upcoming && !(exhibition as any).is_current && (
-                        <span className="px-2 py-0.5 rounded text-xs bg-orange-100 text-orange-700">🟠 Kommande</span>
+                        <span className="px-1.5 md:px-2 py-0.5 rounded text-[10px] md:text-xs bg-orange-100 text-orange-700">🟠 Kommande</span>
                       )}
+                    </div>
+                    
+                    {/* Venue and dates */}
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs md:text-sm text-neutral-600 mt-1 md:mt-2">
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3 md:w-4 md:h-4 shrink-0" />
+                        <span className="truncate">{exhibition.venue || exhibition.location}</span>
+                      </span>
                       {((exhibition as any).start_date || (exhibition as any).end_date) && (
-                        <span className="text-xs text-neutral-500">
+                        <span className="text-[10px] md:text-xs text-neutral-500">
                           {formatDate((exhibition as any).start_date)} – {formatDate((exhibition as any).end_date)}
                         </span>
                       )}
                     </div>
-                    <div className="flex flex-wrap gap-4 text-sm text-neutral-600">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4" />
-                        {exhibition.venue || exhibition.location}
-                      </span>
-                    </div>
                   </div>
-                  <div className="flex items-center gap-2 ml-4">
+                  
+                  {/* Action buttons */}
+                  <div className="flex items-center gap-1 shrink-0">
                     <button 
                       onClick={() => openEditModal(exhibition)}
-                      className="p-2 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 rounded transition-colors"
+                      className="p-1.5 md:p-2 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 rounded transition-colors"
                       title="Redigera"
                     >
-                      <Edit2 className="w-4 h-4" />
+                      <Edit2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
                     </button>
                     <button 
                       onClick={() => handleDelete(exhibition.id!)}
-                      className="p-2 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                      className="p-1.5 md:p-2 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                       title="Ta bort"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
                     </button>
                   </div>
                 </div>
