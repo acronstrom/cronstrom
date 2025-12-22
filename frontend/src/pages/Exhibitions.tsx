@@ -128,6 +128,7 @@ export function Exhibitions() {
           year: e.date,
           category: e.category,
           description: e.description,
+          image_url: e.image_url,
           is_current: e.is_current,
           is_upcoming: e.is_upcoming
         }));
@@ -214,28 +215,37 @@ export function Exhibitions() {
           className="mb-16 grid md:grid-cols-2 gap-8"
         >
           {/* Pågående utställningar */}
-          <div className="bg-white p-8 border-l-4 border-amber-500">
+          <div className="bg-white p-6 md:p-8 border-l-4 border-amber-500">
             <h2 className="text-sm font-medium tracking-wide uppercase text-neutral-500 mb-4">
               Pågående utställningar
             </h2>
             {currentExhibitions.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {currentExhibitions.map((ex, i) => (
-                  <div key={ex.id || i}>
-                    <h3 className="text-xl font-serif text-neutral-900 mb-1">
-                      {ex.title}
-                    </h3>
-                    <p className="text-neutral-600">
-                      {ex.venue || ex.location}
-                      {(ex.date || ex.year) && (
-                        <span className="text-neutral-500"> · {ex.date || ex.year}</span>
-                      )}
-                    </p>
-                    {ex.description && (
-                      <p className="text-neutral-500 text-sm mt-2 whitespace-pre-line">
-                        <MarkdownText text={ex.description} />
-                      </p>
+                  <div key={ex.id || i} className="flex gap-4">
+                    {(ex as any).image_url && (
+                      <img 
+                        src={(ex as any).image_url} 
+                        alt={ex.title}
+                        className="w-20 h-20 md:w-24 md:h-24 object-cover rounded shrink-0"
+                      />
                     )}
+                    <div className="min-w-0">
+                      <h3 className="text-xl font-serif text-neutral-900 mb-1">
+                        {ex.title}
+                      </h3>
+                      <p className="text-neutral-600">
+                        {ex.venue || ex.location}
+                        {(ex.date || ex.year) && (
+                          <span className="text-neutral-500"> · {ex.date || ex.year}</span>
+                        )}
+                      </p>
+                      {ex.description && (
+                        <p className="text-neutral-500 text-sm mt-2 whitespace-pre-line">
+                          <MarkdownText text={ex.description} />
+                        </p>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -247,28 +257,37 @@ export function Exhibitions() {
           </div>
 
           {/* Kommande utställningar */}
-          <div className="bg-white p-8 border-l-4 border-neutral-300">
+          <div className="bg-white p-6 md:p-8 border-l-4 border-neutral-300">
             <h2 className="text-sm font-medium tracking-wide uppercase text-neutral-500 mb-4">
               Kommande utställningar
             </h2>
             {upcomingExhibitions.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {upcomingExhibitions.map((ex, i) => (
-                  <div key={ex.id || i}>
-                    <h3 className="text-xl font-serif text-neutral-900 mb-1">
-                      {ex.title}
-                    </h3>
-                    <p className="text-neutral-600">
-                      {ex.venue || ex.location}
-                      {(ex.date || ex.year) && (
-                        <span className="text-neutral-500"> · {ex.date || ex.year}</span>
-                      )}
-                    </p>
-                    {ex.description && (
-                      <p className="text-neutral-500 text-sm mt-2 whitespace-pre-line">
-                        <MarkdownText text={ex.description} />
-                      </p>
+                  <div key={ex.id || i} className="flex gap-4">
+                    {(ex as any).image_url && (
+                      <img 
+                        src={(ex as any).image_url} 
+                        alt={ex.title}
+                        className="w-20 h-20 md:w-24 md:h-24 object-cover rounded shrink-0"
+                      />
                     )}
+                    <div className="min-w-0">
+                      <h3 className="text-xl font-serif text-neutral-900 mb-1">
+                        {ex.title}
+                      </h3>
+                      <p className="text-neutral-600">
+                        {ex.venue || ex.location}
+                        {(ex.date || ex.year) && (
+                          <span className="text-neutral-500"> · {ex.date || ex.year}</span>
+                        )}
+                      </p>
+                      {ex.description && (
+                        <p className="text-neutral-500 text-sm mt-2 whitespace-pre-line">
+                          <MarkdownText text={ex.description} />
+                        </p>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
