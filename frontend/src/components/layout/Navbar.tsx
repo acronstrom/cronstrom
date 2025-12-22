@@ -37,18 +37,18 @@ export function Navbar() {
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white shadow-md border-b border-neutral-100 py-4`}
     >
-      <div className="container mx-auto px-6 flex items-center justify-between">
-        <Link to="/" className="text-2xl md:text-3xl font-serif tracking-wider font-bold text-neutral-900">
+      <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
+        <Link to="/" className="text-xl md:text-2xl xl:text-3xl font-serif tracking-wider font-bold text-neutral-900 shrink-0">
           {artistBio.name.toUpperCase()}
         </Link>
 
-        {/* Desktop Menu */}
-        <div className="hidden lg:flex items-center gap-8">
+        {/* Desktop Menu - only show on xl screens (1280px+) */}
+        <div className="hidden xl:flex items-center gap-6 2xl:gap-8">
           {navLinks.map((link) => (
             <Link
               key={link.name}
               to={link.path}
-              className={`relative text-sm uppercase tracking-widest font-medium transition-colors py-2 group ${
+              className={`relative text-xs 2xl:text-sm uppercase tracking-wider 2xl:tracking-widest font-medium transition-colors py-2 group whitespace-nowrap ${
                 isActive(link.path) ? 'text-neutral-900 font-bold' : 'text-neutral-500 hover:text-neutral-900'
               }`}
             >
@@ -60,18 +60,18 @@ export function Navbar() {
           ))}
         </div>
 
-        {/* Mobile Menu Toggle */}
+        {/* Mobile/Tablet Menu Toggle - show below xl */}
         <button
-          className="lg:hidden z-50 text-neutral-900"
+          className="xl:hidden z-50 text-neutral-900"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           aria-label="Toggle menu"
         >
           {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
 
-        {/* Mobile Menu Overlay */}
+        {/* Mobile/Tablet Menu Overlay */}
         {isMobileMenuOpen && (
-          <div className="fixed inset-0 bg-white flex flex-col items-center justify-center space-y-6 lg:hidden z-40">
+          <div className="fixed inset-0 bg-white flex flex-col items-center justify-center space-y-6 xl:hidden z-40">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
