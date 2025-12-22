@@ -84,7 +84,8 @@ export function Hero() {
           is_upcoming: e.is_upcoming,
           start_date: e.start_date,
           end_date: e.end_date,
-          description: e.description
+          description: e.description,
+          image_url: e.image_url
         }));
         setExhibitions(mapped);
       } else {
@@ -213,18 +214,30 @@ export function Hero() {
                   currentExhibitions.slice(0, 2).map((exhibition, index) => {
                     const dateRange = formatDateRange((exhibition as any).start_date, (exhibition as any).end_date);
                     const description = (exhibition as any).description;
+                    const imageUrl = (exhibition as any).image_url;
                     return (
                       <div key={exhibition.id || index} className="mb-3 lg:mb-4">
-                        <p className="text-white text-base md:text-lg lg:text-xl font-serif">{exhibition.title}</p>
-                        <p className="text-white/60 text-sm md:text-base">
-                          {exhibition.venue || exhibition.location}
-                          {dateRange && <span className="text-white/50"> · {dateRange}</span>}
-                        </p>
-                        {description && (
-                          <p className="text-white/50 text-xs md:text-sm mt-1 whitespace-pre-line leading-relaxed">
-                            <MarkdownText text={description} />
-                          </p>
-                        )}
+                        <div className="flex gap-3">
+                          {imageUrl && (
+                            <img 
+                              src={imageUrl} 
+                              alt={exhibition.title}
+                              className="w-16 h-16 md:w-20 md:h-20 object-cover rounded shrink-0"
+                            />
+                          )}
+                          <div className="min-w-0">
+                            <p className="text-white text-base md:text-lg lg:text-xl font-serif">{exhibition.title}</p>
+                            <p className="text-white/60 text-sm md:text-base">
+                              {exhibition.venue || exhibition.location}
+                              {dateRange && <span className="text-white/50"> · {dateRange}</span>}
+                            </p>
+                            {description && (
+                              <p className="text-white/50 text-xs md:text-sm mt-1 whitespace-pre-line leading-relaxed">
+                                <MarkdownText text={description} />
+                              </p>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     );
                   })
@@ -247,18 +260,30 @@ export function Hero() {
                   upcomingExhibitions.slice(0, 2).map((exhibition, index) => {
                     const dateRange = formatDateRange((exhibition as any).start_date, (exhibition as any).end_date);
                     const description = (exhibition as any).description;
+                    const imageUrl = (exhibition as any).image_url;
                     return (
                       <div key={exhibition.id || index} className="mb-3 lg:mb-4">
-                        <p className="text-white text-base md:text-lg lg:text-xl font-serif">{exhibition.title}</p>
-                        <p className="text-white/60 text-sm md:text-base">
-                          {exhibition.venue || exhibition.location}
-                          {dateRange && <span className="text-white/50"> · {dateRange}</span>}
-                        </p>
-                        {description && (
-                          <p className="text-white/50 text-xs md:text-sm mt-1 whitespace-pre-line leading-relaxed">
-                            <MarkdownText text={description} />
-                          </p>
-                        )}
+                        <div className="flex gap-3">
+                          {imageUrl && (
+                            <img 
+                              src={imageUrl} 
+                              alt={exhibition.title}
+                              className="w-16 h-16 md:w-20 md:h-20 object-cover rounded shrink-0"
+                            />
+                          )}
+                          <div className="min-w-0">
+                            <p className="text-white text-base md:text-lg lg:text-xl font-serif">{exhibition.title}</p>
+                            <p className="text-white/60 text-sm md:text-base">
+                              {exhibition.venue || exhibition.location}
+                              {dateRange && <span className="text-white/50"> · {dateRange}</span>}
+                            </p>
+                            {description && (
+                              <p className="text-white/50 text-xs md:text-sm mt-1 whitespace-pre-line leading-relaxed">
+                                <MarkdownText text={description} />
+                              </p>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     );
                   })

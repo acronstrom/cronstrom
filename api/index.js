@@ -105,6 +105,7 @@ async function initDB() {
         date VARCHAR(255),
         category VARCHAR(50),
         description TEXT,
+        image_url TEXT,
         is_current BOOLEAN DEFAULT false,
         is_upcoming BOOLEAN DEFAULT false,
         start_date DATE,
@@ -119,6 +120,7 @@ async function initDB() {
     try {
       await sql`ALTER TABLE exhibitions ADD COLUMN IF NOT EXISTS start_date DATE`;
       await sql`ALTER TABLE exhibitions ADD COLUMN IF NOT EXISTS end_date DATE`;
+      await sql`ALTER TABLE exhibitions ADD COLUMN IF NOT EXISTS image_url TEXT`;
       await sql`ALTER TABLE exhibitions ADD COLUMN IF NOT EXISTS manual_current BOOLEAN DEFAULT false`;
       await sql`ALTER TABLE exhibitions ADD COLUMN IF NOT EXISTS manual_upcoming BOOLEAN DEFAULT false`;
     } catch (e) {
@@ -417,13 +419,13 @@ app.post('/api/exhibitions', auth, async (req, res) => {
     return res.status(503).json({ error: 'Database not connected' });
   }
   
-  const { title, venue, date, category, description, start_date, end_date, manual_current, manual_upcoming } = req.body;
+  const { title, venue, date, category, description, image_url, start_date, end_date, manual_current, manual_upcoming } = req.body;
   
   try {
     await initDB();
     const { rows } = await sql`
-      INSERT INTO exhibitions (title, venue, date, category, description, start_date, end_date, manual_current, manual_upcoming)
-      VALUES (${title}, ${venue}, ${date}, ${category}, ${description}, ${start_date || null}, ${end_date || null}, ${manual_current || false}, ${manual_upcoming || false})
+      INSERT INTO exhibitions (title, venue, date, category, description, image_url, start_date, end_date, manual_current, manual_upcoming)
+      VALUES (${title}, ${venue}, ${date}, ${category}, ${description}, ${image_url || null}, ${start_date || null}, ${end_date || null}, ${manual_current || false}, ${manual_upcoming || false})
       RETURNING *
     `;
     res.json({ exhibition: rows[0], message: 'Exhibition created', database: true });
@@ -439,13 +441,13 @@ app.put('/api/exhibitions/:id', auth, async (req, res) => {
   }
   
   const { id } = req.params;
-  const { title, venue, date, category, description, start_date, end_date, manual_current, manual_upcoming } = req.body;
+  const { title, venue, date, category, description, image_url, start_date, end_date, manual_current, manual_upcoming } = req.body;
   
   try {
     const { rows } = await sql`
       UPDATE exhibitions 
       SET title = ${title}, venue = ${venue}, date = ${date}, 
-          category = ${category}, description = ${description},
+          category = ${category}, description = ${description}, image_url = ${image_url || null},
           start_date = ${start_date || null}, end_date = ${end_date || null},
           manual_current = ${manual_current || false}, manual_upcoming = ${manual_upcoming || false}
       WHERE id = ${id}

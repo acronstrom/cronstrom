@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Plus, Edit2, Trash2, Calendar, MapPin, Award, Users, Star, X, Save, Loader2, RotateCcw, Check, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Plus, Edit2, Trash2, Calendar, MapPin, Award, Users, Star, X, Save, Loader2, RotateCcw, Check, ExternalLink, Upload, Image } from 'lucide-react';
 import { exhibitions as initialExhibitions } from '../../lib/data';
 import type { Exhibition } from '../../lib/types';
 import { API_BASE } from '../../lib/config';
@@ -14,6 +14,7 @@ interface ExhibitionFormData {
   date: string;
   category: string;
   description: string;
+  image_url: string;
   start_date: string;
   end_date: string;
   manual_current: boolean;
@@ -26,6 +27,7 @@ const emptyForm: ExhibitionFormData = {
   date: new Date().getFullYear().toString(),
   category: 'separat',
   description: '',
+  image_url: '',
   start_date: '',
   end_date: '',
   manual_current: false,
@@ -41,6 +43,8 @@ export function ExhibitionsManager() {
   const [isLoading, setIsLoading] = useState(true);
   const [useDatabase, setUseDatabase] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadExhibitions();
@@ -65,6 +69,7 @@ export function ExhibitionsManager() {
           year: e.date,
           category: e.category,
           description: e.description,
+          image_url: e.image_url || '',
           is_current: e.is_current,
           is_upcoming: e.is_upcoming,
           start_date: e.start_date ? e.start_date.split('T')[0] : '',
@@ -143,6 +148,7 @@ export function ExhibitionsManager() {
       date: exhibition.date || exhibition.year || '',
       category: exhibition.category || 'separat',
       description: exhibition.description || '',
+      image_url: (exhibition as any).image_url || '',
       start_date: (exhibition as any).start_date || '',
       end_date: (exhibition as any).end_date || '',
       manual_current: (exhibition as any).manual_current || false,
@@ -151,6 +157,64 @@ export function ExhibitionsManager() {
     setFormData(data);
     setEditingExhibition(data);
     setIsModalOpen(true);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Vänligen välj en bildfil');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Bilden är för stor. Max 5MB.');
+      return;
+    }
+
+    setIsUploadingImage(true);
+
+    try {
+      // Convert to base64
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64 = reader.result as string;
+        
+        // Upload to Vercel Blob via API
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE}/upload`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-auth-token': token || ''
+          },
+          body: JSON.stringify({
+            filename: `exhibition-${Date.now()}-${file.name}`,
+            data: base64
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setFormData(prev => ({ ...prev, image_url: data.url }));
+        } else {
+          alert('Kunde inte ladda upp bilden');
+        }
+        setIsUploadingImage(false);
+      };
+      reader.onerror = () => {
+        alert('Kunde inte läsa bildfilen');
+        setIsUploadingImage(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('Upload error:', err);
+      alert('Ett fel uppstod vid uppladdning');
+      setIsUploadingImage(false);
+    }
   };
 
   const closeModal = () => {
@@ -585,6 +649,70 @@ export function ExhibitionsManager() {
                 />
                 <p className="text-xs text-neutral-400 mt-1">
                   💡 Länk-format: [länktext](https://url.se) → blir klickbar länk
+                </p>
+              </div>
+
+              {/* Image upload for current/upcoming exhibitions */}
+              <div className="bg-amber-50 p-4 rounded-lg space-y-3">
+                <p className="text-sm font-medium text-neutral-700 flex items-center gap-2">
+                  <Image className="w-4 h-4" />
+                  Bild <span className="text-neutral-400 font-normal">(visas på startsidan för pågående/kommande)</span>
+                </p>
+                
+                {formData.image_url ? (
+                  <div className="flex items-start gap-4">
+                    <div className="relative">
+                      <img 
+                        src={formData.image_url} 
+                        alt="Utställningsbild" 
+                        className="w-24 h-24 object-cover rounded border border-neutral-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, image_url: '' }))}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="text-sm text-neutral-600 hover:text-neutral-900 underline"
+                    >
+                      Byt bild
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploadingImage}
+                    className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-neutral-300 rounded-lg hover:border-neutral-400 hover:bg-white transition-colors text-sm text-neutral-600"
+                  >
+                    {isUploadingImage ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Laddar upp...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4" />
+                        Ladda upp bild
+                      </>
+                    )}
+                  </button>
+                )}
+                
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+                <p className="text-xs text-neutral-500">
+                  Max 5MB. Rekommenderad storlek: 400x400px
                 </p>
               </div>
 
