@@ -60,6 +60,77 @@ h1, h2, h3, h4, h5, h6 {
   pointer-events: none;
 }
 
+/*
+ * TipTap ResizableNodeView (Image resize): handles are plain divs with no intrinsic size.
+ * Without these rules they are 0×0 px and cannot be dragged.
+ */
+.tiptap.ProseMirror {
+  overflow: visible;
+}
+
+/* Inline styles from TipTap use flex/block and span full line — handles miss the image. */
+.tiptap [data-resize-container] {
+  display: inline-flex !important;
+  align-items: flex-start !important;
+  max-width: 100%;
+  vertical-align: top;
+}
+
+.tiptap [data-resize-wrapper] {
+  display: inline-block !important;
+  max-width: 100%;
+  vertical-align: top;
+}
+
+.tiptap [data-resize-handle] {
+  z-index: 6;
+  pointer-events: auto;
+  box-sizing: border-box;
+}
+
+.tiptap [data-resize-handle='top-left'],
+.tiptap [data-resize-handle='top-right'],
+.tiptap [data-resize-handle='bottom-left'],
+.tiptap [data-resize-handle='bottom-right'] {
+  width: 14px;
+  height: 14px;
+  background: #fafafa;
+  border: 2px solid #262626;
+  border-radius: 3px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.12);
+}
+
+.tiptap [data-resize-handle='top-left'] {
+  cursor: nwse-resize;
+}
+.tiptap [data-resize-handle='top-right'] {
+  cursor: nesw-resize;
+}
+.tiptap [data-resize-handle='bottom-left'] {
+  cursor: nesw-resize;
+}
+.tiptap [data-resize-handle='bottom-right'] {
+  cursor: nwse-resize;
+}
+
+.tiptap [data-resize-handle='top'],
+.tiptap [data-resize-handle='bottom'] {
+  height: 10px;
+  cursor: ns-resize;
+  background: rgb(38 38 38 / 0.12);
+}
+
+.tiptap [data-resize-handle='left'],
+.tiptap [data-resize-handle='right'] {
+  width: 10px;
+  cursor: ew-resize;
+  background: rgb(38 38 38 / 0.12);
+}
+
+.tiptap [data-resize-container][data-resize-state='true'] {
+  user-select: none;
+}
+
 /* Sanitized popup body on the public site */
 .popup-rte-content h1,
 .popup-rte-content h2,

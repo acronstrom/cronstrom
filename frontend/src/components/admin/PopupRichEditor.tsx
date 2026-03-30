@@ -80,7 +80,9 @@ function ImageSizeBar({ editor }: { editor: Editor }) {
   return (
     <div className="flex flex-wrap items-center gap-2 px-2 py-2 border-b border-neutral-200 bg-amber-50/80 text-xs">
       <span className="text-neutral-600 uppercase tracking-wider font-medium">Bildstorlek</span>
-      <span className="text-neutral-400 hidden sm:inline">Dra i hörnen eller välj:</span>
+      <span className="text-neutral-400 hidden sm:inline">
+        Klicka på bilden och dra i de märkta hörnen/kanterna, eller välj:
+      </span>
       <div className="flex flex-wrap gap-1">
         {(
           [
@@ -150,7 +152,7 @@ export function PopupRichEditor({ value, onChange }: Props) {
     editorProps: {
       attributes: {
         class:
-          'tiptap min-h-[200px] px-3 py-3 focus:outline-none prose-headings:font-serif [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg [&_p]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-sm',
+          'tiptap min-h-[200px] overflow-visible px-3 py-3 focus:outline-none prose-headings:font-serif [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg [&_p]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-sm',
       },
     },
     onUpdate: ({ editor: ed }) => {
@@ -201,7 +203,7 @@ export function PopupRichEditor({ value, onChange }: Props) {
   }
 
   return (
-    <div className="border border-neutral-200 bg-white">
+    <div className="border border-neutral-200 bg-white overflow-visible">
       <div className="flex flex-wrap gap-1 p-2 border-b border-neutral-200 bg-neutral-50">
         <ToolbarButton
           title="Fet"
