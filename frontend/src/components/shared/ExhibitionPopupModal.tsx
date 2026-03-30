@@ -158,24 +158,26 @@ export function ExhibitionPopupModal() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
-            className="relative bg-white w-full max-w-lg max-h-[85vh] overflow-y-auto shadow-2xl"
+            className="relative bg-white w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-lg border border-neutral-200/80 shadow-xl shadow-neutral-900/5"
           >
             <button
               onClick={handleClose}
-              className="absolute top-4 right-4 p-2 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 rounded-full transition-colors z-10"
+              className="absolute top-3 right-3 p-2 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-full transition-colors z-10"
               aria-label="Stäng"
             >
               <X size={20} />
             </button>
 
-            <div className="bg-neutral-900 text-white px-6 py-8 md:px-8 md:py-10 pr-14">
-              <h2 className="font-serif text-2xl md:text-3xl mb-2">{settings.title}</h2>
+            <div className="px-6 pt-12 pb-2 md:px-8 md:pt-14 md:pb-3 pr-14 space-y-2">
+              <h2 className="font-serif text-2xl md:text-3xl text-neutral-900 tracking-tight">
+                {settings.title}
+              </h2>
               {showHeaderDescription && (
-                <p className="text-white/70 text-sm md:text-base">{settings.description}</p>
+                <p className="text-neutral-500 text-sm md:text-base leading-relaxed">{settings.description}</p>
               )}
             </div>
 
-            <div className="px-6 py-6 md:px-8 md:py-8 space-y-6">
+            <div className="px-6 pb-6 md:px-8 md:pb-8 space-y-6">
               {hasRichBody && (
                 <div
                   className="popup-rte-content text-neutral-800 text-sm md:text-base"
@@ -210,14 +212,14 @@ export function ExhibitionPopupModal() {
               )}
             </div>
 
-            <div className="px-6 pb-6 md:px-8 md:pb-8">
+            <div className="px-6 pb-6 md:px-8 md:pb-8 pt-0">
               <Link
                 to="/utstallningar"
                 onClick={handleClose}
-                className="flex items-center justify-center gap-2 w-full bg-neutral-900 text-white px-6 py-4 text-sm uppercase tracking-wider hover:bg-neutral-800 transition-colors"
+                className="flex items-center justify-center gap-2 w-full border border-neutral-200 bg-white text-neutral-900 px-6 py-3.5 text-sm uppercase tracking-wider hover:border-neutral-300 hover:bg-neutral-50 transition-colors rounded-sm"
               >
                 {settings.buttonText}
-                <ArrowRight size={16} />
+                <ArrowRight size={16} className="text-neutral-500" />
               </Link>
             </div>
           </motion.div>

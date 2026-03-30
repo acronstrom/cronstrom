@@ -435,7 +435,7 @@ export function AdminSettings() {
 
                   <div>
                     <label className="block text-xs uppercase tracking-wider text-neutral-500 mb-2">
-                      Kort beskrivning (valfritt, i mörka sidhuvudet)
+                      Kort beskrivning (valfritt, under rubriken)
                     </label>
                     <textarea
                       value={popupSettings.description}
