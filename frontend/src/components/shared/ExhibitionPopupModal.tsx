@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { API_BASE } from '../../lib/config';
 import type { Exhibition } from '../../lib/types';
 import { sanitizePopupHtml, isPopupHtmlEmpty } from '../../lib/sanitizePopupHtml';
+import { FormattedExhibitionDescription } from './FormattedExhibitionDescription';
 
 interface PopupSettings {
   enabled: boolean;
@@ -273,9 +274,10 @@ function ExhibitionCard({ exhibition }: { exhibition: any }) {
         )}
       </div>
       {exhibition.description && (
-        <p className="mt-3.5 text-sm text-neutral-600 leading-relaxed line-clamp-3 border-t border-neutral-200/70 pt-3.5">
-          {exhibition.description}
-        </p>
+        <FormattedExhibitionDescription
+          text={exhibition.description}
+          className="mt-3.5 border-t border-neutral-200/70 pt-3.5"
+        />
       )}
     </article>
   );
