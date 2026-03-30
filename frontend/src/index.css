@@ -132,62 +132,111 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Sanitized popup body on the public site */
+.popup-rte-content > *:first-child {
+  margin-top: 0;
+}
+.popup-rte-content > *:last-child {
+  margin-bottom: 0;
+}
+
 .popup-rte-content h1,
 .popup-rte-content h2,
 .popup-rte-content h3,
 .popup-rte-content h4 {
   font-family: "Cormorant Garamond", serif;
   font-weight: 600;
-  line-height: 1.25;
+  line-height: 1.28;
+  margin-top: 1.25rem;
   margin-bottom: 0.5rem;
+  color: #171717;
+}
+.popup-rte-content > h1:first-child,
+.popup-rte-content > h2:first-child,
+.popup-rte-content > h3:first-child,
+.popup-rte-content > h4:first-child {
+  margin-top: 0;
 }
 .popup-rte-content h1 {
-  font-size: 1.65rem;
+  font-size: 1.5rem;
 }
 .popup-rte-content h2 {
-  font-size: 1.35rem;
+  font-size: 1.3rem;
 }
 .popup-rte-content h3 {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
 }
 .popup-rte-content h4 {
   font-size: 1rem;
 }
 .popup-rte-content p {
-  margin-bottom: 0.65rem;
-  line-height: 1.55;
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+  color: #404040;
+}
+.popup-rte-content h1 + p,
+.popup-rte-content h2 + p,
+.popup-rte-content h3 + p,
+.popup-rte-content h4 + p {
+  margin-top: 0;
 }
 .popup-rte-content ul {
   list-style: disc;
   padding-left: 1.25rem;
-  margin-bottom: 0.65rem;
+  margin-bottom: 0.75rem;
 }
 .popup-rte-content ol {
   list-style: decimal;
   padding-left: 1.25rem;
-  margin-bottom: 0.65rem;
+  margin-bottom: 0.75rem;
 }
 .popup-rte-content li {
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.35rem;
+  line-height: 1.55;
 }
 .popup-rte-content img {
+  display: block;
   max-width: 100%;
   height: auto;
-  border-radius: 2px;
-  margin: 0.5rem 0;
+  border-radius: 0.5rem;
+  margin: 1.25rem 0;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.06);
+}
+.popup-rte-content p + img,
+.popup-rte-content h1 + img,
+.popup-rte-content h2 + img,
+.popup-rte-content h3 + img {
+  margin-top: 1.5rem;
+}
+.popup-rte-content img + p,
+.popup-rte-content img + h1,
+.popup-rte-content img + h2 {
+  margin-top: 1.25rem;
 }
 .popup-rte-content blockquote {
-  border-left: 3px solid #d4d4d4;
+  border-left: 3px solid #e5e5e5;
   padding-left: 1rem;
-  margin: 0.75rem 0;
+  margin: 1rem 0;
   color: #525252;
+  font-size: 0.95em;
 }
 .popup-rte-content a {
+  color: #171717;
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-underline-offset: 3px;
+  text-decoration-color: rgb(0 0 0 / 0.25);
+}
+.popup-rte-content a:hover {
+  text-decoration-color: rgb(0 0 0 / 0.5);
 }
 .popup-rte-content hr {
   border: 0;
-  border-top: 1px solid #e5e5e5;
-  margin: 1rem 0;
+  border-top: 1px solid #f0f0f0;
+  margin: 1.75rem 0;
+}
+
+/* Exhibition blocks: soft rule between rich HTML and lists, or between current/upcoming */
+.popup-rte-content + .popup-exhibition-section,
+.popup-exhibition-section + .popup-exhibition-section {
+  border-top: 1px solid #f0f0f0;
+  padding-top: 1.25rem;
 }
