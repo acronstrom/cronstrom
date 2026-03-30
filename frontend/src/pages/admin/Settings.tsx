@@ -1,9 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Save, User, Globe, Mail, AlertTriangle, RefreshCcw, ExternalLink, Bell } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { artistBio } from '../../lib/data';
 import { API_BASE } from '../../lib/config';
+const PopupRichEditor = lazy(() =>
+  import('../../components/admin/PopupRichEditor').then((m) => ({ default: m.PopupRichEditor }))
+);
 
 export function AdminSettings() {
   const { user } = useAuth();
@@ -41,6 +44,7 @@ export function AdminSettings() {
     enabled: false,
     title: 'Kommande utställningar',
     description: 'Välkommen! Missa inte mina kommande och pågående utställningar.',
+    bodyHtml: '',
     buttonText: 'Se alla utställningar',
     showCurrent: true,
     showUpcoming: true,
@@ -83,6 +87,7 @@ export function AdminSettings() {
             enabled: data.settings.popupEnabled === 'true',
             title: data.settings.popupTitle || prev.title,
             description: data.settings.popupDescription || prev.description,
+            bodyHtml: data.settings.popupBodyHtml ?? prev.bodyHtml,
             buttonText: data.settings.popupButtonText || prev.buttonText,
             showCurrent: data.settings.popupShowCurrent !== 'false',
             showUpcoming: data.settings.popupShowUpcoming !== 'false',
@@ -118,6 +123,7 @@ export function AdminSettings() {
         popupEnabled: String(popupSettings.enabled),
         popupTitle: popupSettings.title,
         popupDescription: popupSettings.description,
+        popupBodyHtml: popupSettings.bodyHtml,
         popupButtonText: popupSettings.buttonText,
         popupShowCurrent: String(popupSettings.showCurrent),
         popupShowUpcoming: String(popupSettings.showUpcoming),
@@ -372,7 +378,8 @@ export function AdminSettings() {
                 <div className="space-y-6">
                   <h2 className="font-serif text-2xl mb-6">Popup för nya besökare</h2>
                   <p className="text-sm text-neutral-500 mb-6">
-                    Visa en popup med kommande och pågående utställningar för besökare som kommer till sidan första gången.
+                    Bygg popupens innehåll med rubriker, text, listor och uppladdade bilder. Du kan också låta pågående och
+                    kommande utställningar listas under ditt innehåll. Popup visas för nya besökare (sparad i webbläsaren).
                   </p>
                   
                   <div className="flex items-center gap-4 p-4 bg-neutral-50 border border-neutral-200">
@@ -406,13 +413,35 @@ export function AdminSettings() {
 
                   <div>
                     <label className="block text-xs uppercase tracking-wider text-neutral-500 mb-2">
-                      Beskrivning
+                      Formaterat innehåll
+                    </label>
+                    <p className="text-xs text-neutral-400 mb-2">
+                      Rubriker (H1–H3), fet/kursiv, listor, länkar och bilder. Bilder laddas upp till samma lagring som övriga
+                      admin-bilder.
+                    </p>
+                    <Suspense
+                      fallback={
+                        <div className="min-h-[240px] border border-neutral-200 bg-neutral-50 flex items-center justify-center text-sm text-neutral-500">
+                          Laddar redigerare…
+                        </div>
+                      }
+                    >
+                      <PopupRichEditor
+                        value={popupSettings.bodyHtml}
+                        onChange={(bodyHtml) => setPopupSettings({ ...popupSettings, bodyHtml })}
+                      />
+                    </Suspense>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-neutral-500 mb-2">
+                      Kort beskrivning (valfritt, i mörka sidhuvudet)
                     </label>
                     <textarea
                       value={popupSettings.description}
                       onChange={(e) => setPopupSettings({ ...popupSettings, description: e.target.value })}
-                      className="w-full border border-neutral-200 p-3 focus:border-neutral-400 focus:outline-none h-24 resize-none"
-                      placeholder="Välkommen! Missa inte mina kommande och pågående utställningar."
+                      className="w-full border border-neutral-200 p-3 focus:border-neutral-400 focus:outline-none h-20 resize-none"
+                      placeholder="Valfri kort text under rubriken (t.ex. välkomstmening)."
                     />
                   </div>
 
@@ -457,8 +486,9 @@ export function AdminSettings() {
 
                   <div className="bg-amber-50 border border-amber-200 p-4 text-sm">
                     <p className="text-amber-800">
-                      <strong>Tips:</strong> Popup visas endast om det finns utställningar att visa och besökaren inte har sett den tidigare. 
-                      Besökarens val sparas i webbläsarens localStorage.
+                      <strong>Tips:</strong> Popup visas om du har formaterat innehåll och/eller minst en utställning enligt
+                      inställningarna ovan, och besökaren inte stängt den tidigare. Rensa localStorage-nyckeln{' '}
+                      <code className="text-xs bg-amber-100 px-1">cronstrom_popup_seen</code> för att testa igen.
                     </p>
                   </div>
                 </div>

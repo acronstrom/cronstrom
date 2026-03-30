@@ -4,11 +4,13 @@ import { X, Calendar, MapPin, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { API_BASE } from '../../lib/config';
 import type { Exhibition } from '../../lib/types';
+import { sanitizePopupHtml, isPopupHtmlEmpty } from '../../lib/sanitizePopupHtml';
 
 interface PopupSettings {
   enabled: boolean;
   title: string;
   description: string;
+  bodyHtml: string;
   buttonText: string;
   showCurrentExhibitions: boolean;
   showUpcomingExhibitions: boolean;
@@ -28,37 +30,40 @@ export function ExhibitionPopupModal() {
 
   const loadPopupData = async () => {
     try {
-      // Check if user has already seen the popup
       const hasSeenPopup = localStorage.getItem(POPUP_STORAGE_KEY);
       if (hasSeenPopup) {
         setIsLoading(false);
         return;
       }
 
-      // Load popup settings
       const settingsResponse = await fetch(`${API_BASE}/settings`);
       const settingsData = await settingsResponse.json();
-      
+
       const popupEnabled = settingsData.settings?.popupEnabled === 'true';
       if (!popupEnabled) {
         setIsLoading(false);
         return;
       }
 
+      const rawBody = settingsData.settings?.popupBodyHtml || '';
+      const bodyHtml = sanitizePopupHtml(rawBody);
+      const hasCustomBody = !isPopupHtmlEmpty(bodyHtml);
+
       const popupSettings: PopupSettings = {
         enabled: popupEnabled,
         title: settingsData.settings?.popupTitle || 'Kommande utställningar',
         description: settingsData.settings?.popupDescription || '',
+        bodyHtml,
         buttonText: settingsData.settings?.popupButtonText || 'Se alla utställningar',
         showCurrentExhibitions: settingsData.settings?.popupShowCurrent !== 'false',
         showUpcomingExhibitions: settingsData.settings?.popupShowUpcoming !== 'false',
       };
-      setSettings(popupSettings);
 
-      // Load exhibitions
       const exhibitionsResponse = await fetch(`${API_BASE}/exhibitions`);
       const exhibitionsData = await exhibitionsResponse.json();
-      
+
+      let relevantExhibitions: Exhibition[] = [];
+
       if (exhibitionsData.exhibitions && exhibitionsData.exhibitions.length > 0) {
         const mapped = exhibitionsData.exhibitions.map((e: any) => ({
           id: e.id.toString(),
@@ -75,9 +80,8 @@ export function ExhibitionPopupModal() {
           start_date: e.start_date,
           end_date: e.end_date,
         }));
-        
-        // Filter exhibitions based on settings
-        const relevantExhibitions = mapped.filter((ex: any) => {
+
+        relevantExhibitions = mapped.filter((ex: any) => {
           if (ex.category === 'commission' || ex.category === 'represented') {
             return false;
           }
@@ -85,15 +89,17 @@ export function ExhibitionPopupModal() {
           if (popupSettings.showUpcomingExhibitions && ex.is_upcoming) return true;
           return false;
         });
-
-        setExhibitions(relevantExhibitions);
-
-        // Only show popup if there are exhibitions to display
-        if (relevantExhibitions.length > 0) {
-          // Small delay before showing popup for better UX
-          setTimeout(() => setIsOpen(true), 1500);
-        }
       }
+
+      if (!hasCustomBody && relevantExhibitions.length === 0) {
+        setIsLoading(false);
+        return;
+      }
+
+      setSettings(popupSettings);
+      setExhibitions(relevantExhibitions);
+
+      setTimeout(() => setIsOpen(true), 1500);
     } catch (err) {
       console.error('Failed to load popup data:', err);
     } finally {
@@ -103,7 +109,6 @@ export function ExhibitionPopupModal() {
 
   const handleClose = () => {
     setIsOpen(false);
-    // Mark popup as seen
     localStorage.setItem(POPUP_STORAGE_KEY, new Date().toISOString());
   };
 
@@ -113,7 +118,6 @@ export function ExhibitionPopupModal() {
     }
   };
 
-  // Prevent body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -125,12 +129,18 @@ export function ExhibitionPopupModal() {
     };
   }, [isOpen]);
 
-  if (isLoading || !settings || exhibitions.length === 0) {
+  if (isLoading || !settings) {
     return null;
   }
 
   const currentExhibitions = exhibitions.filter((ex: any) => ex.is_current);
   const upcomingExhibitions = exhibitions.filter((ex: any) => ex.is_upcoming);
+  const showCurrentBlock =
+    settings.showCurrentExhibitions && currentExhibitions.length > 0;
+  const showUpcomingBlock =
+    settings.showUpcomingExhibitions && upcomingExhibitions.length > 0;
+  const hasRichBody = !isPopupHtmlEmpty(settings.bodyHtml);
+  const showHeaderDescription = Boolean(settings.description?.trim());
 
   return (
     <AnimatePresence>
@@ -150,7 +160,6 @@ export function ExhibitionPopupModal() {
             transition={{ duration: 0.3, ease: 'easeOut' }}
             className="relative bg-white w-full max-w-lg max-h-[85vh] overflow-y-auto shadow-2xl"
           >
-            {/* Close button */}
             <button
               onClick={handleClose}
               className="absolute top-4 right-4 p-2 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 rounded-full transition-colors z-10"
@@ -159,18 +168,22 @@ export function ExhibitionPopupModal() {
               <X size={20} />
             </button>
 
-            {/* Header */}
-            <div className="bg-neutral-900 text-white px-6 py-8 md:px-8 md:py-10">
+            <div className="bg-neutral-900 text-white px-6 py-8 md:px-8 md:py-10 pr-14">
               <h2 className="font-serif text-2xl md:text-3xl mb-2">{settings.title}</h2>
-              {settings.description && (
+              {showHeaderDescription && (
                 <p className="text-white/70 text-sm md:text-base">{settings.description}</p>
               )}
             </div>
 
-            {/* Content */}
             <div className="px-6 py-6 md:px-8 md:py-8 space-y-6">
-              {/* Current exhibitions */}
-              {settings.showCurrentExhibitions && currentExhibitions.length > 0 && (
+              {hasRichBody && (
+                <div
+                  className="popup-rte-content text-neutral-800 text-sm md:text-base"
+                  dangerouslySetInnerHTML={{ __html: settings.bodyHtml }}
+                />
+              )}
+
+              {showCurrentBlock && (
                 <div>
                   <h3 className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-4">
                     Pågående utställningar
@@ -183,8 +196,7 @@ export function ExhibitionPopupModal() {
                 </div>
               )}
 
-              {/* Upcoming exhibitions */}
-              {settings.showUpcomingExhibitions && upcomingExhibitions.length > 0 && (
+              {showUpcomingBlock && (
                 <div>
                   <h3 className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-4">
                     Kommande utställningar
@@ -198,7 +210,6 @@ export function ExhibitionPopupModal() {
               )}
             </div>
 
-            {/* Footer */}
             <div className="px-6 pb-6 md:px-8 md:pb-8">
               <Link
                 to="/utstallningar"
@@ -219,18 +230,18 @@ export function ExhibitionPopupModal() {
 function ExhibitionCard({ exhibition }: { exhibition: any }) {
   const formatDate = (startDate: string, endDate: string) => {
     if (!startDate) return exhibition.date;
-    
+
     const start = new Date(startDate);
     const end = endDate ? new Date(endDate) : null;
-    
+
     const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' };
     const startFormatted = start.toLocaleDateString('sv-SE', options);
-    
+
     if (end) {
       const endFormatted = end.toLocaleDateString('sv-SE', options);
       return `${startFormatted} – ${endFormatted}`;
     }
-    
+
     return startFormatted;
   };
 
