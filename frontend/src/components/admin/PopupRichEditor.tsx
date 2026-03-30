@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, type ReactNode } from 'react';
+import { useCallback, useEffect, useReducer, useRef, type ReactNode } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
+import type { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
-import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import {
@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { uploadImageBlob } from '../../lib/uploadImageBlob';
 import { isPopupHtmlEmpty } from '../../lib/sanitizePopupHtml';
+import { PopupImage } from './popupImageExtension';
 
 type Props = {
   value: string;
@@ -55,6 +56,73 @@ function ToolbarButton({
   );
 }
 
+function ImageSizeBar({ editor }: { editor: Editor }) {
+  const [, bump] = useReducer((n: number) => n + 1, 0);
+
+  useEffect(() => {
+    const on = () => bump();
+    editor.on('selectionUpdate', on);
+    editor.on('transaction', on);
+    return () => {
+      editor.off('selectionUpdate', on);
+      editor.off('transaction', on);
+    };
+  }, [editor]);
+
+  if (!editor.isActive('image')) return null;
+
+  const attrs = editor.getAttributes('image') as { width?: number | null; height?: number | null };
+
+  const applySize = (width: number | null, height: number | null) => {
+    editor.chain().focus().updateAttributes('image', { width, height }).run();
+  };
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 px-2 py-2 border-b border-neutral-200 bg-amber-50/80 text-xs">
+      <span className="text-neutral-600 uppercase tracking-wider font-medium">Bildstorlek</span>
+      <span className="text-neutral-400 hidden sm:inline">Dra i hörnen eller välj:</span>
+      <div className="flex flex-wrap gap-1">
+        {(
+          [
+            { label: 'S', w: 200, title: 'Smal (ca 200 px)' },
+            { label: 'M', w: 320, title: 'Medium (ca 320 px)' },
+            { label: 'L', w: 440, title: 'Bred (ca 440 px)' },
+          ] as const
+        ).map(({ label, w, title }) => (
+          <button
+            key={label}
+            type="button"
+            title={title}
+            onClick={() => applySize(w, null)}
+            className={`px-2.5 py-1 rounded border text-xs font-medium transition-colors ${
+              attrs.width === w ? 'bg-neutral-900 text-white border-neutral-900' : 'border-neutral-300 bg-white hover:bg-neutral-50'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+        <button
+          type="button"
+          title="Originalstorlek (anpassas till popup-bredd)"
+          onClick={() => applySize(null, null)}
+          className={`px-2.5 py-1 rounded border text-xs font-medium transition-colors ${
+            attrs.width == null && attrs.height == null
+              ? 'bg-neutral-900 text-white border-neutral-900'
+              : 'border-neutral-300 bg-white hover:bg-neutral-50'
+          }`}
+        >
+          Original
+        </button>
+      </div>
+      {attrs.width != null && (
+        <span className="text-neutral-500 tabular-nums">
+          {attrs.width}×{attrs.height ?? '—'} px
+        </span>
+      )}
+    </div>
+  );
+}
+
 export function PopupRichEditor({ value, onChange }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -64,10 +132,7 @@ export function PopupRichEditor({ value, onChange }: Props) {
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
       }),
-      Image.configure({
-        inline: false,
-        allowBase64: false,
-      }),
+      PopupImage,
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
@@ -225,6 +290,7 @@ export function PopupRichEditor({ value, onChange }: Props) {
           void addImageFromFile(f);
         }}
       />
+      <ImageSizeBar editor={editor} />
       <EditorContent editor={editor} />
     </div>
   );
