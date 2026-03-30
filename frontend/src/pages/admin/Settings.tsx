@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Save, User, Globe, Mail, AlertTriangle, RefreshCcw, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Save, User, Globe, Mail, AlertTriangle, RefreshCcw, ExternalLink, Bell } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { artistBio } from '../../lib/data';
 import { API_BASE } from '../../lib/config';
 
 export function AdminSettings() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'profile' | 'site' | 'contact'>('site');
+  const [activeTab, setActiveTab] = useState<'profile' | 'site' | 'contact' | 'popup'>('site');
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState('');
@@ -35,6 +35,15 @@ export function AdminSettings() {
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
+  });
+
+  const [popupSettings, setPopupSettings] = useState({
+    enabled: false,
+    title: 'Kommande utställningar',
+    description: 'Välkommen! Missa inte mina kommande och pågående utställningar.',
+    buttonText: 'Se alla utställningar',
+    showCurrent: true,
+    showUpcoming: true,
   });
 
   useEffect(() => {
@@ -70,6 +79,14 @@ export function AdminSettings() {
             instagram: data.settings.instagram || prev.instagram,
             facebook: data.settings.facebook || prev.facebook,
           }));
+          setPopupSettings(prev => ({
+            enabled: data.settings.popupEnabled === 'true',
+            title: data.settings.popupTitle || prev.title,
+            description: data.settings.popupDescription || prev.description,
+            buttonText: data.settings.popupButtonText || prev.buttonText,
+            showCurrent: data.settings.popupShowCurrent !== 'false',
+            showUpcoming: data.settings.popupShowUpcoming !== 'false',
+          }));
         }
       }
     } catch (err) {
@@ -98,6 +115,12 @@ export function AdminSettings() {
         contactAddress: contactSettings.address,
         instagram: contactSettings.instagram,
         facebook: contactSettings.facebook,
+        popupEnabled: String(popupSettings.enabled),
+        popupTitle: popupSettings.title,
+        popupDescription: popupSettings.description,
+        popupButtonText: popupSettings.buttonText,
+        popupShowCurrent: String(popupSettings.showCurrent),
+        popupShowUpcoming: String(popupSettings.showUpcoming),
       };
 
       const response = await fetch(`${API_BASE}/settings`, {
@@ -126,6 +149,7 @@ export function AdminSettings() {
   const tabs = [
     { id: 'site', name: 'Webbplats', icon: Globe },
     { id: 'contact', name: 'Kontakt', icon: Mail },
+    { id: 'popup', name: 'Popup', icon: Bell },
     { id: 'profile', name: 'Profil', icon: User },
   ] as const;
 
@@ -340,6 +364,102 @@ export function AdminSettings() {
                         placeholder="https://facebook.com/..."
                       />
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'popup' && (
+                <div className="space-y-6">
+                  <h2 className="font-serif text-2xl mb-6">Popup för nya besökare</h2>
+                  <p className="text-sm text-neutral-500 mb-6">
+                    Visa en popup med kommande och pågående utställningar för besökare som kommer till sidan första gången.
+                  </p>
+                  
+                  <div className="flex items-center gap-4 p-4 bg-neutral-50 border border-neutral-200">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={popupSettings.enabled}
+                        onChange={(e) => setPopupSettings({ ...popupSettings, enabled: e.target.checked })}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-neutral-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                    </label>
+                    <div>
+                      <p className="font-medium text-sm">Aktivera popup</p>
+                      <p className="text-xs text-neutral-500">Visas endast en gång per besökare</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-neutral-500 mb-2">
+                      Rubrik
+                    </label>
+                    <input
+                      type="text"
+                      value={popupSettings.title}
+                      onChange={(e) => setPopupSettings({ ...popupSettings, title: e.target.value })}
+                      className="w-full border border-neutral-200 p-3 focus:border-neutral-400 focus:outline-none"
+                      placeholder="Kommande utställningar"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-neutral-500 mb-2">
+                      Beskrivning
+                    </label>
+                    <textarea
+                      value={popupSettings.description}
+                      onChange={(e) => setPopupSettings({ ...popupSettings, description: e.target.value })}
+                      className="w-full border border-neutral-200 p-3 focus:border-neutral-400 focus:outline-none h-24 resize-none"
+                      placeholder="Välkommen! Missa inte mina kommande och pågående utställningar."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-neutral-500 mb-2">
+                      Knapptext
+                    </label>
+                    <input
+                      type="text"
+                      value={popupSettings.buttonText}
+                      onChange={(e) => setPopupSettings({ ...popupSettings, buttonText: e.target.value })}
+                      className="w-full border border-neutral-200 p-3 focus:border-neutral-400 focus:outline-none"
+                      placeholder="Se alla utställningar"
+                    />
+                  </div>
+
+                  <div className="border-t border-neutral-200 pt-6">
+                    <h3 className="font-serif text-lg mb-4">Visa utställningar</h3>
+                    
+                    <div className="space-y-3">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={popupSettings.showCurrent}
+                          onChange={(e) => setPopupSettings({ ...popupSettings, showCurrent: e.target.checked })}
+                          className="w-4 h-4 text-neutral-900 border-neutral-300 rounded focus:ring-neutral-500"
+                        />
+                        <span className="text-sm">Visa pågående utställningar</span>
+                      </label>
+
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={popupSettings.showUpcoming}
+                          onChange={(e) => setPopupSettings({ ...popupSettings, showUpcoming: e.target.checked })}
+                          className="w-4 h-4 text-neutral-900 border-neutral-300 rounded focus:ring-neutral-500"
+                        />
+                        <span className="text-sm">Visa kommande utställningar</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="bg-amber-50 border border-amber-200 p-4 text-sm">
+                    <p className="text-amber-800">
+                      <strong>Tips:</strong> Popup visas endast om det finns utställningar att visa och besökaren inte har sett den tidigare. 
+                      Besökarens val sparas i webbläsarens localStorage.
+                    </p>
                   </div>
                 </div>
               )}
