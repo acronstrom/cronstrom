@@ -187,7 +187,7 @@ export function Hero() {
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 1, delay: 0.5 }}
-            className="w-full md:max-w-md lg:max-w-sm"
+            className="w-full md:max-w-md lg:max-w-lg xl:max-w-xl"
           >
             {/* Glassmorphic container */}
             <div className="bg-black/20 lg:bg-black/10 backdrop-blur-sm border border-white/10 lg:border-white/5 p-4 md:p-6 lg:p-8 relative">

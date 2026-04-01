@@ -7,12 +7,16 @@ import type { Exhibition } from '../../lib/types';
 import { sanitizePopupHtml, isPopupHtmlEmpty } from '../../lib/sanitizePopupHtml';
 import { FormattedExhibitionDescription } from './FormattedExhibitionDescription';
 
+type PopupButtonTarget = 'exhibitions' | 'gallery';
+
 interface PopupSettings {
   enabled: boolean;
   title: string;
   description: string;
   bodyHtml: string;
   buttonText: string;
+  showButton: boolean;
+  buttonTarget: PopupButtonTarget;
   showCurrentExhibitions: boolean;
   showUpcomingExhibitions: boolean;
 }
@@ -50,49 +54,63 @@ export function ExhibitionPopupModal() {
       const bodyHtml = sanitizePopupHtml(rawBody);
       const hasCustomBody = !isPopupHtmlEmpty(bodyHtml);
 
+      const buttonTarget: PopupButtonTarget =
+        settingsData.settings?.popupButtonTarget === 'gallery' ? 'gallery' : 'exhibitions';
+
       const popupSettings: PopupSettings = {
         enabled: popupEnabled,
         title: settingsData.settings?.popupTitle || 'Kommande utställningar',
         description: settingsData.settings?.popupDescription || '',
         bodyHtml,
-        buttonText: settingsData.settings?.popupButtonText || 'Se alla utställningar',
+        buttonText:
+          settingsData.settings?.popupButtonText ||
+          (buttonTarget === 'gallery' ? 'Till galleriet' : 'Se alla utställningar'),
+        showButton: settingsData.settings?.popupShowButton !== 'false',
+        buttonTarget,
         showCurrentExhibitions: settingsData.settings?.popupShowCurrent !== 'false',
         showUpcomingExhibitions: settingsData.settings?.popupShowUpcoming !== 'false',
       };
 
-      const exhibitionsResponse = await fetch(`${API_BASE}/exhibitions`);
-      const exhibitionsData = await exhibitionsResponse.json();
-
       let relevantExhibitions: Exhibition[] = [];
 
-      if (exhibitionsData.exhibitions && exhibitionsData.exhibitions.length > 0) {
-        const mapped = exhibitionsData.exhibitions.map((e: any) => ({
-          id: e.id.toString(),
-          title: e.title,
-          venue: e.venue,
-          location: e.venue,
-          date: e.date,
-          year: e.date,
-          category: e.category,
-          description: e.description,
-          imageUrl: e.image_url,
-          is_current: e.is_current,
-          is_upcoming: e.is_upcoming,
-          start_date: e.start_date,
-          end_date: e.end_date,
-        }));
+      if (buttonTarget === 'exhibitions') {
+        const exhibitionsResponse = await fetch(`${API_BASE}/exhibitions`);
+        const exhibitionsData = await exhibitionsResponse.json();
 
-        relevantExhibitions = mapped.filter((ex: any) => {
-          if (ex.category === 'commission' || ex.category === 'represented') {
+        if (exhibitionsData.exhibitions && exhibitionsData.exhibitions.length > 0) {
+          const mapped = exhibitionsData.exhibitions.map((e: any) => ({
+            id: e.id.toString(),
+            title: e.title,
+            venue: e.venue,
+            location: e.venue,
+            date: e.date,
+            year: e.date,
+            category: e.category,
+            description: e.description,
+            imageUrl: e.image_url,
+            is_current: e.is_current,
+            is_upcoming: e.is_upcoming,
+            start_date: e.start_date,
+            end_date: e.end_date,
+          }));
+
+          relevantExhibitions = mapped.filter((ex: any) => {
+            if (ex.category === 'commission' || ex.category === 'represented') {
+              return false;
+            }
+            if (popupSettings.showCurrentExhibitions && ex.is_current) return true;
+            if (popupSettings.showUpcomingExhibitions && ex.is_upcoming) return true;
             return false;
-          }
-          if (popupSettings.showCurrentExhibitions && ex.is_current) return true;
-          if (popupSettings.showUpcomingExhibitions && ex.is_upcoming) return true;
-          return false;
-        });
+          });
+        }
       }
 
-      if (!hasCustomBody && relevantExhibitions.length === 0) {
+      const hasReasonToShowPopup =
+        hasCustomBody ||
+        (buttonTarget === 'exhibitions' && relevantExhibitions.length > 0) ||
+        (buttonTarget === 'gallery' && popupSettings.showButton);
+
+      if (!hasReasonToShowPopup) {
         setIsLoading(false);
         return;
       }
@@ -136,10 +154,16 @@ export function ExhibitionPopupModal() {
 
   const currentExhibitions = exhibitions.filter((ex: any) => ex.is_current);
   const upcomingExhibitions = exhibitions.filter((ex: any) => ex.is_upcoming);
+  const listExhibitionsInPopup = settings.buttonTarget === 'exhibitions';
   const showCurrentBlock =
-    settings.showCurrentExhibitions && currentExhibitions.length > 0;
+    listExhibitionsInPopup &&
+    settings.showCurrentExhibitions &&
+    currentExhibitions.length > 0;
   const showUpcomingBlock =
-    settings.showUpcomingExhibitions && upcomingExhibitions.length > 0;
+    listExhibitionsInPopup &&
+    settings.showUpcomingExhibitions &&
+    upcomingExhibitions.length > 0;
+  const buttonHref = settings.buttonTarget === 'gallery' ? '/galleri' : '/utstallningar';
   const hasRichBody = !isPopupHtmlEmpty(settings.bodyHtml);
   const showHeaderDescription = Boolean(settings.description?.trim());
 
@@ -182,7 +206,11 @@ export function ExhibitionPopupModal() {
               </header>
             </div>
 
-            <div className="px-7 py-8 md:px-9 md:py-9 space-y-10">
+            <div
+              className={`px-7 md:px-9 space-y-10 ${
+                settings.showButton ? 'py-8 md:py-9' : 'pt-8 pb-10 md:pt-9 md:pb-11'
+              }`}
+            >
               {hasRichBody && (
                 <div
                   className="popup-rte-content text-neutral-800 text-[0.9375rem] md:text-base leading-relaxed"
@@ -217,16 +245,18 @@ export function ExhibitionPopupModal() {
               )}
             </div>
 
-            <div className="px-7 pb-8 md:px-9 md:pb-9 pt-0">
-              <Link
-                to="/utstallningar"
-                onClick={handleClose}
-                className="flex items-center justify-center gap-2 w-full border border-neutral-200/90 bg-neutral-50/50 text-neutral-900 px-6 py-3.5 text-sm uppercase tracking-[0.12em] hover:border-neutral-300 hover:bg-neutral-100/80 transition-colors rounded-md"
-              >
-                {settings.buttonText}
-                <ArrowRight size={16} className="text-neutral-500" />
-              </Link>
-            </div>
+            {settings.showButton && (
+              <div className="px-7 pb-8 md:px-9 md:pb-9 pt-0">
+                <Link
+                  to={buttonHref}
+                  onClick={handleClose}
+                  className="flex items-center justify-center gap-2 w-full border border-neutral-200/90 bg-neutral-50/50 text-neutral-900 px-6 py-3.5 text-sm uppercase tracking-[0.12em] hover:border-neutral-300 hover:bg-neutral-100/80 transition-colors rounded-md"
+                >
+                  {settings.buttonText}
+                  <ArrowRight size={16} className="text-neutral-500" />
+                </Link>
+              </div>
+            )}
           </motion.div>
         </motion.div>
       )}
