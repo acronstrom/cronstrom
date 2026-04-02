@@ -39,5 +39,6 @@ export function parseShowExhibitionsInPopup(settings: PopupSettingsRecord): bool
   if (v !== undefined && v !== '') {
     return v !== 'false';
   }
-  return settings.popupButtonTarget !== 'gallery';
+  // Default on: CTA may still point at Galleri; lists and button are independent.
+  return true;
 }

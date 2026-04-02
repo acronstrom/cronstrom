@@ -229,7 +229,7 @@ export function ExhibitionPopupModal() {
                     Pågående utställningar
                   </h3>
                   <div className="space-y-3">
-                    {currentExhibitions.slice(0, 2).map((exhibition: any) => (
+                    {currentExhibitions.map((exhibition: any) => (
                       <ExhibitionCard key={exhibition.id} exhibition={exhibition} />
                     ))}
                   </div>

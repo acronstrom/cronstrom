@@ -211,7 +211,7 @@ export function Hero() {
                   Pågående
                 </p>
                 {currentExhibitions.length > 0 ? (
-                  currentExhibitions.slice(0, 2).map((exhibition, index) => {
+                  currentExhibitions.map((exhibition, index) => {
                     const dateRange = formatDateRange((exhibition as any).start_date, (exhibition as any).end_date);
                     const description = (exhibition as any).description;
                     const imageUrl = (exhibition as any).image_url;
@@ -293,6 +293,16 @@ export function Hero() {
                   </p>
                 )}
               </div>
+
+              <button
+                type="button"
+                onClick={() => navigate('/galleri')}
+                className="mt-5 lg:mt-6 w-full text-left group pt-4 border-t border-white/10 flex items-center gap-2 md:gap-3 text-xs md:text-sm uppercase tracking-[0.15em] text-white/70 hover:text-white transition-colors"
+              >
+                <span className="w-6 md:w-8 h-[1px] bg-white/40 group-hover:w-10 transition-all duration-300" />
+                Galleri
+                <ArrowRight size={14} className="opacity-70 group-hover:translate-x-0.5 transition-transform" />
+              </button>
 
               {/* Bottom decorative accent - hidden on mobile/tablet */}
               <div className="hidden lg:block absolute bottom-0 right-0 w-12 h-[2px] bg-white/30"></div>
