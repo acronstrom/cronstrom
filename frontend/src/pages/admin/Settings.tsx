@@ -4,6 +4,11 @@ import { ArrowLeft, Save, User, Globe, Mail, AlertTriangle, RefreshCcw, External
 import { useAuth } from '../../context/AuthContext';
 import { artistBio } from '../../lib/data';
 import { API_BASE } from '../../lib/config';
+import {
+  POPUP_BUTTON_DESTINATIONS,
+  parseShowExhibitionsInPopup,
+  sanitizePopupButtonPath,
+} from '../../lib/popupButtonDestinations';
 const PopupRichEditor = lazy(() =>
   import('../../components/admin/PopupRichEditor').then((m) => ({ default: m.PopupRichEditor }))
 );
@@ -47,7 +52,8 @@ export function AdminSettings() {
     bodyHtml: '',
     buttonText: 'Se alla utställningar',
     showButton: true,
-    buttonTarget: 'exhibitions' as 'exhibitions' | 'gallery',
+    buttonPath: '/utstallningar',
+    showExhibitionsInPopup: true,
     showCurrent: true,
     showUpcoming: true,
   });
@@ -92,7 +98,11 @@ export function AdminSettings() {
             bodyHtml: data.settings.popupBodyHtml ?? prev.bodyHtml,
             buttonText: data.settings.popupButtonText || prev.buttonText,
             showButton: data.settings.popupShowButton !== 'false',
-            buttonTarget: data.settings.popupButtonTarget === 'gallery' ? 'gallery' : 'exhibitions',
+            buttonPath: sanitizePopupButtonPath(
+              data.settings.popupButtonPath,
+              data.settings.popupButtonTarget
+            ),
+            showExhibitionsInPopup: parseShowExhibitionsInPopup(data.settings),
             showCurrent: data.settings.popupShowCurrent !== 'false',
             showUpcoming: data.settings.popupShowUpcoming !== 'false',
           }));
@@ -130,7 +140,8 @@ export function AdminSettings() {
         popupBodyHtml: popupSettings.bodyHtml,
         popupButtonText: popupSettings.buttonText,
         popupShowButton: String(popupSettings.showButton),
-        popupButtonTarget: popupSettings.buttonTarget,
+        popupButtonPath: popupSettings.buttonPath,
+        popupShowExhibitionsInPopup: String(popupSettings.showExhibitionsInPopup),
         popupShowCurrent: String(popupSettings.showCurrent),
         popupShowUpcoming: String(popupSettings.showUpcoming),
       };
@@ -384,9 +395,8 @@ export function AdminSettings() {
                 <div className="space-y-6">
                   <h2 className="font-serif text-2xl mb-6">Popup för nya besökare</h2>
                   <p className="text-sm text-neutral-500 mb-6">
-                    Bygg popupens innehåll med rubriker, text, listor och uppladdade bilder. Välj om besökaren ska se
-                    utställningslistor i popupen eller en knapp till galleriet. Popup visas för nya besökare (sparad i
-                    webbläsaren).
+                    Bygg popupens innehåll med rubriker, text, listor och uppladdade bilder. Välj om utställningar ska listas
+                    i popupen och vart knappen längst ner ska leda. Popup visas för nya besökare (sparad i webbläsaren).
                   </p>
                   
                   <div className="flex items-center gap-4 p-4 bg-neutral-50 border border-neutral-200">
@@ -453,88 +463,29 @@ export function AdminSettings() {
                   </div>
 
                   <div className="border border-neutral-200 p-4 space-y-4">
-                    <h3 className="font-serif text-lg">Utställningar eller galleri</h3>
-                    <p className="text-xs text-neutral-500">
-                      Välj om popupen ska lista utställningar (som tidigare) eller peka besökaren till galleriet med en knapp.
-                    </p>
-                    <div className="space-y-3">
-                      <label className="flex items-start gap-3 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="popupButtonTarget"
-                          checked={popupSettings.buttonTarget === 'exhibitions'}
-                          onChange={() =>
-                            setPopupSettings({ ...popupSettings, buttonTarget: 'exhibitions' })
-                          }
-                          className="mt-1 w-4 h-4 text-neutral-900 border-neutral-300 focus:ring-neutral-500"
-                        />
-                        <span>
-                          <span className="text-sm font-medium block">Lista utställningar i popupen</span>
-                          <span className="text-xs text-neutral-500 leading-snug block mt-0.5">
-                            Visar pågående och/eller kommande utställningar under ditt innehåll. Knappen går till sidan
-                            Utställningar.
-                          </span>
-                        </span>
-                      </label>
-                      <label className="flex items-start gap-3 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="popupButtonTarget"
-                          checked={popupSettings.buttonTarget === 'gallery'}
-                          onChange={() =>
-                            setPopupSettings({ ...popupSettings, buttonTarget: 'gallery' })
-                          }
-                          className="mt-1 w-4 h-4 text-neutral-900 border-neutral-300 focus:ring-neutral-500"
-                        />
-                        <span>
-                          <span className="text-sm font-medium block">Knapp till galleriet</span>
-                          <span className="text-xs text-neutral-500 leading-snug block mt-0.5">
-                            Ingen utställningslista i popupen. Knappen går till Galleri (du kan anpassa knapptexten nedan).
-                          </span>
-                        </span>
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <label className="flex items-center gap-3 cursor-pointer">
+                    <h3 className="font-serif text-lg">Utställningar i popupen</h3>
+                    <label className="flex items-start gap-3 cursor-pointer">
                       <input
                         type="checkbox"
-                        checked={popupSettings.showButton}
-                        onChange={(e) => setPopupSettings({ ...popupSettings, showButton: e.target.checked })}
-                        className="w-4 h-4 text-neutral-900 border-neutral-300 rounded focus:ring-neutral-500"
+                        checked={popupSettings.showExhibitionsInPopup}
+                        onChange={(e) =>
+                          setPopupSettings({
+                            ...popupSettings,
+                            showExhibitionsInPopup: e.target.checked,
+                          })
+                        }
+                        className="mt-0.5 w-4 h-4 text-neutral-900 border-neutral-300 rounded focus:ring-neutral-500"
                       />
-                      <span className="text-sm">
-                        Visa knapp längst ner
-                        {popupSettings.buttonTarget === 'gallery'
-                          ? ' (går till galleriet)'
-                          : ' (går till utställningssidan)'}
+                      <span>
+                        <span className="text-sm font-medium block">Visa utställningslistor</span>
+                        <span className="text-xs text-neutral-500 leading-snug block mt-0.5">
+                          När det är på kan pågående och/eller kommande utställningar visas under ditt formaterade innehåll.
+                        </span>
                       </span>
                     </label>
-                    <div>
-                      <label className="block text-xs uppercase tracking-wider text-neutral-500 mb-2">
-                        Knapptext
-                      </label>
-                      <input
-                        type="text"
-                        value={popupSettings.buttonText}
-                        onChange={(e) => setPopupSettings({ ...popupSettings, buttonText: e.target.value })}
-                        disabled={!popupSettings.showButton}
-                        className="w-full border border-neutral-200 p-3 focus:border-neutral-400 focus:outline-none disabled:bg-neutral-100 disabled:text-neutral-500"
-                        placeholder={
-                          popupSettings.buttonTarget === 'gallery'
-                            ? 'Till galleriet'
-                            : 'Se alla utställningar'
-                        }
-                      />
-                    </div>
-                  </div>
 
-                  {popupSettings.buttonTarget === 'exhibitions' && (
-                    <div className="border-t border-neutral-200 pt-6">
-                      <h3 className="font-serif text-lg mb-4">Visa utställningar i popupen</h3>
-
-                      <div className="space-y-3">
+                    {popupSettings.showExhibitionsInPopup && (
+                      <div className="space-y-3 pl-1 border-l-2 border-neutral-200 ml-1">
                         <label className="flex items-center gap-3 cursor-pointer">
                           <input
                             type="checkbox"
@@ -555,14 +506,63 @@ export function AdminSettings() {
                           <span className="text-sm">Visa kommande utställningar</span>
                         </label>
                       </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={popupSettings.showButton}
+                        onChange={(e) => setPopupSettings({ ...popupSettings, showButton: e.target.checked })}
+                        className="w-4 h-4 text-neutral-900 border-neutral-300 rounded focus:ring-neutral-500"
+                      />
+                      <span className="text-sm">Visa knapp längst ner</span>
+                    </label>
+
+                    <div>
+                      <label className="block text-xs uppercase tracking-wider text-neutral-500 mb-2">
+                        Knappens sida
+                      </label>
+                      <select
+                        value={popupSettings.buttonPath}
+                        onChange={(e) =>
+                          setPopupSettings({ ...popupSettings, buttonPath: e.target.value })
+                        }
+                        disabled={!popupSettings.showButton}
+                        className="w-full border border-neutral-200 p-3 focus:border-neutral-400 focus:outline-none disabled:bg-neutral-100 disabled:text-neutral-500 bg-white"
+                      >
+                        {POPUP_BUTTON_DESTINATIONS.map(({ path, label }) => (
+                          <option key={path} value={path}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-xs text-neutral-400 mt-1.5">
+                        Välj vilken sida på webbplatsen knappen öppnar.
+                      </p>
                     </div>
-                  )}
+
+                    <div>
+                      <label className="block text-xs uppercase tracking-wider text-neutral-500 mb-2">
+                        Knapptext
+                      </label>
+                      <input
+                        type="text"
+                        value={popupSettings.buttonText}
+                        onChange={(e) => setPopupSettings({ ...popupSettings, buttonText: e.target.value })}
+                        disabled={!popupSettings.showButton}
+                        className="w-full border border-neutral-200 p-3 focus:border-neutral-400 focus:outline-none disabled:bg-neutral-100 disabled:text-neutral-500"
+                        placeholder="Se alla utställningar"
+                      />
+                    </div>
+                  </div>
 
                   <div className="bg-amber-50 border border-amber-200 p-4 text-sm">
                     <p className="text-amber-800">
-                      <strong>Tips:</strong> Popup visas om du har formaterat innehåll, eller (vid utställningsläge) minst en
-                      utställning som matchar kryssrutorna, eller (vid galleriläge) om knappen är på — så länge besökaren inte
-                      stängt den tidigare. Rensa localStorage-nyckeln{' '}
+                      <strong>Tips:</strong> Popup visas om du har formaterat innehåll, minst en utställning som matchar
+                      listinställningarna, eller om knappen längst ner är på — så länge besökaren inte stängt den tidigare.
+                      Rensa localStorage-nyckeln{' '}
                       <code className="text-xs bg-amber-100 px-1">cronstrom_popup_seen</code> för att testa igen.
                     </p>
                   </div>

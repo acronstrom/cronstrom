@@ -5,9 +5,11 @@ import { Link } from 'react-router-dom';
 import { API_BASE } from '../../lib/config';
 import type { Exhibition } from '../../lib/types';
 import { sanitizePopupHtml, isPopupHtmlEmpty } from '../../lib/sanitizePopupHtml';
+import {
+  parseShowExhibitionsInPopup,
+  sanitizePopupButtonPath,
+} from '../../lib/popupButtonDestinations';
 import { FormattedExhibitionDescription } from './FormattedExhibitionDescription';
-
-type PopupButtonTarget = 'exhibitions' | 'gallery';
 
 interface PopupSettings {
   enabled: boolean;
@@ -16,7 +18,8 @@ interface PopupSettings {
   bodyHtml: string;
   buttonText: string;
   showButton: boolean;
-  buttonTarget: PopupButtonTarget;
+  buttonPath: string;
+  showExhibitionsInPopup: boolean;
   showCurrentExhibitions: boolean;
   showUpcomingExhibitions: boolean;
 }
@@ -54,26 +57,29 @@ export function ExhibitionPopupModal() {
       const bodyHtml = sanitizePopupHtml(rawBody);
       const hasCustomBody = !isPopupHtmlEmpty(bodyHtml);
 
-      const buttonTarget: PopupButtonTarget =
-        settingsData.settings?.popupButtonTarget === 'gallery' ? 'gallery' : 'exhibitions';
+      const s = settingsData.settings || {};
+      const showExhibitionsInPopup = parseShowExhibitionsInPopup(s);
+      const buttonPath = sanitizePopupButtonPath(
+        s.popupButtonPath,
+        s.popupButtonTarget
+      );
 
       const popupSettings: PopupSettings = {
         enabled: popupEnabled,
-        title: settingsData.settings?.popupTitle || 'Kommande utställningar',
-        description: settingsData.settings?.popupDescription || '',
+        title: s.popupTitle || 'Kommande utställningar',
+        description: s.popupDescription || '',
         bodyHtml,
-        buttonText:
-          settingsData.settings?.popupButtonText ||
-          (buttonTarget === 'gallery' ? 'Till galleriet' : 'Se alla utställningar'),
-        showButton: settingsData.settings?.popupShowButton !== 'false',
-        buttonTarget,
-        showCurrentExhibitions: settingsData.settings?.popupShowCurrent !== 'false',
-        showUpcomingExhibitions: settingsData.settings?.popupShowUpcoming !== 'false',
+        buttonText: s.popupButtonText || 'Se alla utställningar',
+        showButton: s.popupShowButton !== 'false',
+        buttonPath,
+        showExhibitionsInPopup,
+        showCurrentExhibitions: s.popupShowCurrent !== 'false',
+        showUpcomingExhibitions: s.popupShowUpcoming !== 'false',
       };
 
       let relevantExhibitions: Exhibition[] = [];
 
-      if (buttonTarget === 'exhibitions') {
+      if (showExhibitionsInPopup) {
         const exhibitionsResponse = await fetch(`${API_BASE}/exhibitions`);
         const exhibitionsData = await exhibitionsResponse.json();
 
@@ -107,8 +113,8 @@ export function ExhibitionPopupModal() {
 
       const hasReasonToShowPopup =
         hasCustomBody ||
-        (buttonTarget === 'exhibitions' && relevantExhibitions.length > 0) ||
-        (buttonTarget === 'gallery' && popupSettings.showButton);
+        relevantExhibitions.length > 0 ||
+        popupSettings.showButton;
 
       if (!hasReasonToShowPopup) {
         setIsLoading(false);
@@ -154,16 +160,15 @@ export function ExhibitionPopupModal() {
 
   const currentExhibitions = exhibitions.filter((ex: any) => ex.is_current);
   const upcomingExhibitions = exhibitions.filter((ex: any) => ex.is_upcoming);
-  const listExhibitionsInPopup = settings.buttonTarget === 'exhibitions';
   const showCurrentBlock =
-    listExhibitionsInPopup &&
+    settings.showExhibitionsInPopup &&
     settings.showCurrentExhibitions &&
     currentExhibitions.length > 0;
   const showUpcomingBlock =
-    listExhibitionsInPopup &&
+    settings.showExhibitionsInPopup &&
     settings.showUpcomingExhibitions &&
     upcomingExhibitions.length > 0;
-  const buttonHref = settings.buttonTarget === 'gallery' ? '/galleri' : '/utstallningar';
+  const buttonHref = settings.buttonPath;
   const hasRichBody = !isPopupHtmlEmpty(settings.bodyHtml);
   const showHeaderDescription = Boolean(settings.description?.trim());
 
