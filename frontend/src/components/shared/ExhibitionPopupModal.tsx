@@ -10,6 +10,7 @@ import {
   sanitizePopupButtonPath,
 } from '../../lib/popupButtonDestinations';
 import { FormattedExhibitionDescription } from './FormattedExhibitionDescription';
+import { effectiveExhibitionSchedule } from '../../lib/exhibitionSchedule';
 
 interface PopupSettings {
   enabled: boolean;
@@ -84,21 +85,29 @@ export function ExhibitionPopupModal() {
         const exhibitionsData = await exhibitionsResponse.json();
 
         if (exhibitionsData.exhibitions && exhibitionsData.exhibitions.length > 0) {
-          const mapped = exhibitionsData.exhibitions.map((e: any) => ({
-            id: e.id.toString(),
-            title: e.title,
-            venue: e.venue,
-            location: e.venue,
-            date: e.date,
-            year: e.date,
-            category: e.category,
-            description: e.description,
-            imageUrl: e.image_url,
-            is_current: e.is_current,
-            is_upcoming: e.is_upcoming,
-            start_date: e.start_date,
-            end_date: e.end_date,
-          }));
+          const mapped = exhibitionsData.exhibitions.map((e: any) => {
+            const schedule = effectiveExhibitionSchedule({
+              start_date: e.start_date,
+              end_date: e.end_date,
+              is_current: e.is_current,
+              is_upcoming: e.is_upcoming,
+            });
+            return {
+              id: e.id.toString(),
+              title: e.title,
+              venue: e.venue,
+              location: e.venue,
+              date: e.date,
+              year: e.date,
+              category: e.category,
+              description: e.description,
+              imageUrl: e.image_url,
+              is_current: schedule.is_current,
+              is_upcoming: schedule.is_upcoming,
+              start_date: e.start_date,
+              end_date: e.end_date,
+            };
+          });
 
           relevantExhibitions = mapped.filter((ex: any) => {
             if (ex.category === 'commission' || ex.category === 'represented') {
@@ -112,9 +121,7 @@ export function ExhibitionPopupModal() {
       }
 
       const hasReasonToShowPopup =
-        hasCustomBody ||
-        relevantExhibitions.length > 0 ||
-        popupSettings.showButton;
+        hasCustomBody || relevantExhibitions.length > 0;
 
       if (!hasReasonToShowPopup) {
         setIsLoading(false);

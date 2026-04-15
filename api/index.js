@@ -356,7 +356,61 @@ app.delete('/api/artworks/:id', auth, async (req, res) => {
   }
 });
 
-// EXHIBITION ROUTES
+// EXHIBITION ROUTES — calendar "today" in Europe/Stockholm (matches Swedish audience, avoids UTC skew)
+const EXHIBITION_TZ = 'Europe/Stockholm';
+
+function calendarDateKeyInTimeZone(date, timeZone) {
+  const s = new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+  const [y, m, d] = s.split('-').map((x) => parseInt(x, 10));
+  return y * 10000 + m * 100 + d;
+}
+
+function storedDateToKey(dateStr) {
+  if (dateStr == null || String(dateStr).trim() === '') return null;
+  const s = String(dateStr).trim();
+  const match = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    return (
+      parseInt(match[1], 10) * 10000 +
+      parseInt(match[2], 10) * 100 +
+      parseInt(match[3], 10)
+    );
+  }
+  const t = new Date(s);
+  if (Number.isNaN(t.getTime())) return null;
+  return calendarDateKeyInTimeZone(t, EXHIBITION_TZ);
+}
+
+function hasExhibitionDateValue(v) {
+  return v != null && String(v).trim() !== '';
+}
+
+function deriveExhibitionScheduleFromDates(ex) {
+  const todayKey = calendarDateKeyInTimeZone(new Date(), EXHIBITION_TZ);
+  const startKey = hasExhibitionDateValue(ex.start_date) ? storedDateToKey(ex.start_date) : null;
+  const endKey = hasExhibitionDateValue(ex.end_date) ? storedDateToKey(ex.end_date) : null;
+
+  let is_current = false;
+  let is_upcoming = false;
+
+  if (startKey != null && endKey != null) {
+    is_upcoming = startKey > todayKey;
+    is_current = startKey <= todayKey && endKey >= todayKey;
+  } else if (startKey != null && endKey == null) {
+    is_upcoming = startKey > todayKey;
+    is_current = startKey <= todayKey;
+  } else if (startKey == null && endKey != null) {
+    is_current = endKey >= todayKey;
+    is_upcoming = false;
+  }
+
+  return { is_current, is_upcoming };
+}
 
 app.get('/api/exhibitions', async (req, res) => {
   if (!dbConnected || !sql) {
@@ -367,39 +421,17 @@ app.get('/api/exhibitions', async (req, res) => {
     await initDB();
     const { rows } = await sql`SELECT * FROM exhibitions ORDER BY start_date DESC NULLS LAST, created_at DESC`;
     
-    // Calculate is_current and is_upcoming based on dates OR manual flags
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
     const exhibitionsWithStatus = rows.map(ex => {
       let is_current = false;
       let is_upcoming = false;
-      
-      // If dates are set, calculate status from them (dates take priority)
-      if (ex.start_date || ex.end_date) {
-        const startDate = ex.start_date ? new Date(ex.start_date) : null;
-        const endDate = ex.end_date ? new Date(ex.end_date) : null;
-        
-        if (startDate && endDate) {
-          startDate.setHours(0, 0, 0, 0);
-          endDate.setHours(23, 59, 59, 999);
-          is_upcoming = startDate > today;
-          is_current = startDate <= today && endDate >= today;
-        } else if (startDate && !endDate) {
-          startDate.setHours(0, 0, 0, 0);
-          is_upcoming = startDate > today;
-          is_current = startDate <= today;
-        } else if (!startDate && endDate) {
-          endDate.setHours(23, 59, 59, 999);
-          is_current = endDate >= today;
-          is_upcoming = false;
-        }
+
+      if (hasExhibitionDateValue(ex.start_date) || hasExhibitionDateValue(ex.end_date)) {
+        ({ is_current, is_upcoming } = deriveExhibitionScheduleFromDates(ex));
       } else {
-        // No dates set - use manual flags
-        is_current = ex.manual_current || false;
-        is_upcoming = ex.manual_upcoming || false;
+        is_current = Boolean(ex.manual_current);
+        is_upcoming = Boolean(ex.manual_upcoming);
       }
-      
+
       return {
         ...ex,
         is_current,

@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { exhibitions as initialExhibitions } from '../../lib/data';
 import type { Exhibition } from '../../lib/types';
 import { API_BASE } from '../../lib/config';
+import { effectiveExhibitionSchedule } from '../../lib/exhibitionSchedule';
 
 export function UpcomingExhibitions() {
   const [exhibitions, setExhibitions] = useState<Exhibition[]>([]);
@@ -18,17 +19,25 @@ export function UpcomingExhibitions() {
       const data = await response.json();
       
       if (data.exhibitions && data.exhibitions.length > 0) {
-        const mapped = data.exhibitions.map((e: any) => ({
-          id: e.id.toString(),
-          title: e.title,
-          venue: e.venue,
-          location: e.venue,
-          date: e.date,
-          year: e.date,
-          category: e.category,
-          is_current: e.is_current,
-          is_upcoming: e.is_upcoming
-        }));
+        const mapped = data.exhibitions.map((e: any) => {
+          const schedule = effectiveExhibitionSchedule({
+            start_date: e.start_date,
+            end_date: e.end_date,
+            is_current: e.is_current,
+            is_upcoming: e.is_upcoming,
+          });
+          return {
+            id: e.id.toString(),
+            title: e.title,
+            venue: e.venue,
+            location: e.venue,
+            date: e.date,
+            year: e.date,
+            category: e.category,
+            is_current: schedule.is_current,
+            is_upcoming: schedule.is_upcoming,
+          };
+        });
         setExhibitions(mapped);
       } else {
         setExhibitions(initialExhibitions);

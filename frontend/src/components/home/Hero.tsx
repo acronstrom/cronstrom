@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { artistBio as defaultArtistBio, exhibitions as initialExhibitions } from '../../lib/data';
 import type { Exhibition } from '../../lib/types';
 import { API_BASE } from '../../lib/config';
+import { effectiveExhibitionSchedule } from '../../lib/exhibitionSchedule';
 
 // Helper to render markdown links [text](url) as clickable links
 function MarkdownText({ text, className }: { text: string; className?: string }) {
@@ -72,21 +73,29 @@ export function Hero() {
       const data = await response.json();
       
       if (data.exhibitions && data.exhibitions.length > 0) {
-        const mapped = data.exhibitions.map((e: any) => ({
-          id: e.id.toString(),
-          title: e.title,
-          venue: e.venue,
-          location: e.venue,
-          date: e.date,
-          year: e.date,
-          category: e.category,
-          is_current: e.is_current,
-          is_upcoming: e.is_upcoming,
-          start_date: e.start_date,
-          end_date: e.end_date,
-          description: e.description,
-          image_url: e.image_url
-        }));
+        const mapped = data.exhibitions.map((e: any) => {
+          const schedule = effectiveExhibitionSchedule({
+            start_date: e.start_date,
+            end_date: e.end_date,
+            is_current: e.is_current,
+            is_upcoming: e.is_upcoming,
+          });
+          return {
+            id: e.id.toString(),
+            title: e.title,
+            venue: e.venue,
+            location: e.venue,
+            date: e.date,
+            year: e.date,
+            category: e.category,
+            is_current: schedule.is_current,
+            is_upcoming: schedule.is_upcoming,
+            start_date: e.start_date,
+            end_date: e.end_date,
+            description: e.description,
+            image_url: e.image_url,
+          };
+        });
         setExhibitions(mapped);
       } else {
         setExhibitions(initialExhibitions);

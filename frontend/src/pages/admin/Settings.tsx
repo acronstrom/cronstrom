@@ -560,8 +560,8 @@ export function AdminSettings() {
 
                   <div className="bg-amber-50 border border-amber-200 p-4 text-sm">
                     <p className="text-amber-800">
-                      <strong>Tips:</strong> Popup visas om du har formaterat innehåll, minst en utställning som matchar
-                      listinställningarna, eller om knappen längst ner är på — så länge besökaren inte stängt den tidigare.
+                      <strong>Tips:</strong> Popup visas om du har formaterat innehåll eller minst en utställning som matchar
+                      listinställningarna (datum räknas i Europe/Stockholm). Knappen längst ner visas bara tillsammans med sådant innehåll — så länge besökaren inte stängt den tidigare.
                       Rensa localStorage-nyckeln{' '}
                       <code className="text-xs bg-amber-100 px-1">cronstrom_popup_seen</code> för att testa igen.
                     </p>
